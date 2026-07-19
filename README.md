@@ -1,4 +1,4 @@
-#Habit Tracker
+# Habit Tracker
 
 Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
 Käyttäjä pystyy lisäämään sovellukseen tapoja. Lisäksi käyttäjä pystyy muokkaamaan ja poistamaan lisäämiään tapoja.
