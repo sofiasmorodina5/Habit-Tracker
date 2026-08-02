@@ -12,6 +12,7 @@ Asennus ja Käynnistys
 Mene terminaaliin ja kirjoita:
 
 git clone https://github.com/sofiasmorodina5/Habit-Tracker.git
+
 cd Habit-Tracker
 python3 -m venv venv
 source venv/bin/activate  
