@@ -9,6 +9,7 @@
 - Sovelluksessa pääasiallisen tavoite on omien "habittien seuranta", lisäksi toissijainen tietokohde on ilmoittautuminen ja osallistuminen muiden käyttäjiin luomiin tapoihin. Tämä täydentää pääasiallista tietokohdetta. Käyttäjä pystyy lisäämään toissijaisia tapoja omiin ja muiden käyttäjien tapoihin.
 
 Asennus ja Käynnistys
+
 Mene terminaaliin ja kirjoita:
 
 git clone https://github.com/sofiasmorodina5/Habit-Tracker.git
