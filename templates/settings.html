@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Asetukset</h2>
+<form method="POST">
+    <p><strong>Valitse taustaväri:</strong></p>
+    <select name="background_color">
+        <option value="#ffffff" {% if current_color == '#ffffff' %}selected{% endif %}>Valkoinen</option>
+        <option value="#f0f8ff" {% if current_color == '#f0f8ff' %}selected{% endif %}>Vaaleansininen</option>
+        <option value="#f5f5dc" {% if current_color == '#f5f5dc' %}selected{% endif %}>Beige</option>
+        <option value="#e6e6fa" {% if current_color == '#e6e6fa' %}selected{% endif %}>Laventeli</option>
+        <option value="#ffebcd" {% if current_color == '#ffebcd' %}selected{% endif %}>Vaaleanruskea</option>
+        <option value="#ffe4e1" {% if current_color == '#ffe4e1' %}selected{% endif %}>Vaaleanpunainen</option>
+        <option value="#e0ffff" {% if current_color == '#e0ffff' %}selected{% endif %}>Vaaleansyaani</option>
+        <option value="#fafad2" {% if current_color == '#fafad2' %}selected{% endif %}>Vaaleankeltainen</option>
+    </select>
+    <button type="submit">Tallenna</button>
+</form>
+<p>Nykyinen väri: <span style="background-color:{{ current_color }}; padding:5px 20px; border:1px solid #ccc;">{{ current_color }}</span></p>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Lisää alihabitti tapaan: {{ parent_habit.title }}</h2>
+<form method="POST">
+    <p>Otsikko: <input type="text" name="title" required></p>
+    <p>Kuvaus: <textarea name="description"></textarea></p>
+    <button type="submit">Lisää</button>
+</form>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Kaikki tavat</h2>
+
+<form action="{{ url_for('search') }}" method="GET">
+    <input type="text" name="query" placeholder="Hae tapoja..." value="{{ search_query or '' }}">
+    <button type="submit">Hae</button>
+</form>
+
+{% if search_query %}
+    <p>Hakutulokset hakusanalla "{{ search_query }}"</p>
+{% endif %}
+
+{% for habit in habits %}
+    <div class="habit-box">
+        <h3><a href="{{ url_for('view_habit', habit_id=habit.id) }}">{{ habit.title }}</a></h3>
+        <p>{{ habit.description }}</p>
+        <small>Lisännyt: <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a> ({{ habit.created_at[:10] }})</small>
+        <br>
+        <small>Osallistujia: {{ habit.participant_count }}</small>
+
+        <!-- TAVOITE JA EDISTYMINEN (pieni) -->
+        {% if habit.target_per_week > 0 %}
+            <br>
+            <small>🎯 {{ habit.week_count }}/{{ habit.target_per_week }} tällä viikolla</small>
+            <div style="width:100px; background:#ddd; border-radius:5px; height:8px; display:inline-block; margin-left:5px;">
+                <div style="width:{{ (habit.week_count / habit.target_per_week * 100) if habit.target_per_week > 0 else 0 }}%; background:{% if habit.week_count >= habit.target_per_week %}#4CAF50{% else %}#ff9800{% endif %}; height:8px; border-radius:5px;"></div>
+            </div>
+        {% endif %}
+
+        <!-- Suoritusmerkintä tänään -->
+        {% if habit.user_id == session.user_id or habit.is_participant %}
+            <br><br>
+            {% if habit.logged_today %}
+                <form method="POST" action="{{ url_for('unlog_habit', habit_id=habit.id) }}" style="display:inline;">
+                    <button type="submit" style="background:green;color:white;">Suoritettu tänään ✅</button>
+                </form>
+            {% else %}
+                <form method="POST" action="{{ url_for('log_habit', habit_id=habit.id) }}" style="display:inline;">
+                    <button type="submit" style="background:blue;color:white;">Merkitse suoritetuksi</button>
+                </form>
+            {% endif %}
+        {% endif %}
+
+        <!-- Osallistuminen -->
+        {% if habit.user_id != session.user_id %}
+            {% if habit.is_participant %}
+                <form method="POST" action="{{ url_for('leave_habit', habit_id=habit.id) }}" style="display:inline;">
+                    <button type="submit" style="background:orange;">Poistu</button>
+                </form>
+            {% else %}
+                <form method="POST" action="{{ url_for('join_habit', habit_id=habit.id) }}" style="display:inline;">
+                    <button type="submit" style="background:purple;color:white;">Osallistu</button>
+                </form>
+            {% endif %}
+        {% endif %}
+
+        <!-- Muokkaus/poisto (vain omistaja) -->
+        {% if habit.user_id == session.user_id %}
+            <br><br>
+            <a href="{{ url_for('edit_habit', habit_id=habit.id) }}">Muokkaa</a>
+            <form method="POST" action="{{ url_for('delete_habit', habit_id=habit.id) }}" style="display:inline;">
+                <button type="submit" onclick="return confirm('Poistetaanko?')">Poista</button>
+            </form>
+        {% endif %}
+    </div>
+{% else %}
+    <p>Ei tapoja.</p>
+{% endfor %}
+{% endblock %}

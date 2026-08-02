@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>{{ habit.title }}</h2>
+<p>{{ habit.description }}</p>
+
+<div style="display:flex; gap:20px; flex-wrap:wrap; margin:10px 0;">
+    <p><strong>Lisännyt:</strong> <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a></p>
+    <p><strong>Luotu:</strong> {{ habit.created_at[:10] }}</p>
+    <p><strong>🔥 Streak:</strong> <span style="font-size:24px; color:orange;">{{ streak }}</span> päivää putkeen!</p>
+</div>
+
+<!-- TAVOITE JA EDISTYMINEN -->
+{% if target > 0 %}
+    <div style="background:#f0f0f0; padding:15px; border-radius:10px; margin:10px 0;">
+        <p><strong>🎯 Viikkotavoite:</strong> {{ target }} kertaa viikossa</p>
+        <p><strong>✅ Tällä viikolla suoritettu:</strong> {{ week_count }} / {{ target }}</p>
+        <div style="width:100%; background:#ddd; border-radius:10px; height:20px; margin:5px 0;">
+            <div style="width:{{ (week_count / target * 100) if target > 0 else 0 }}%; background:{% if week_count >= target %}#4CAF50{% else %}#ff9800{% endif %}; height:20px; border-radius:10px; text-align:center; color:white; font-size:12px; line-height:20px;">
+                {% if week_count >= target %}✅ Tavoite saavutettu!{% else %}{{ (week_count / target * 100)|round(0) }}%{% endif %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <p><em>Ei asetettua tavoitetta. Aseta tavoite muokkaamalla tapaa.</em></p>
+{% endif %}
+
+{% if habit.user_id == session.user_id %}
+    <a href="{{ url_for('edit_habit', habit_id=habit.id) }}">Muokkaa</a>
+    <form method="POST" action="{{ url_for('delete_habit', habit_id=habit.id) }}" style="display:inline;">
+        <button type="submit" onclick="return confirm('Poistetaanko?')">Poista</button>
+    </form>
+{% elif is_participant %}
+    <form method="POST" action="{{ url_for('leave_habit', habit_id=habit.id) }}" style="display:inline;">
+        <button type="submit">Poistu</button>
+    </form>
+{% else %}
+    <form method="POST" action="{{ url_for('join_habit', habit_id=habit.id) }}" style="display:inline;">
+        <button type="submit" style="background:purple;color:white;">Osallistu</button>
+    </form>
+{% endif %}
+
+<hr>
+
+<h3>📅 Klikkaa päivää merkitäksesi suoritetuksi</h3>
+
+<div style="display:flex; flex-wrap:wrap; gap:10px; margin:20px 0;">
+    {% for day in week_dates %}
+        {% set day_str = day.isoformat() %}
+        {% set is_logged = day_str in logged_dates %}
+        <form method="POST" action="{% if is_logged %}{{ url_for('unlog_habit', habit_id=habit.id) }}{% else %}{{ url_for('log_habit', habit_id=habit.id) }}{% endif %}" style="margin:0; display:inline-block;">
+            <input type="hidden" name="log_date" value="{{ day_str }}">
+            <button type="submit" style="border:2px solid {% if is_logged %}#4CAF50{% else %}#ccc{% endif %}; padding:15px; border-radius:12px; min-width:80px; background-color:{% if is_logged %}#e8f5e9{% else %}#f9f9f9{% endif %}; cursor:pointer; font-size:inherit; text-align:center; display:block;">
+                <div style="font-size:16px; font-weight:bold;">{{ day.strftime('%a') }}</div>
+                <div style="font-size:28px;">{{ day.strftime('%d') }}</div>
+                <div style="font-size:14px; color:#666;">{{ day.strftime('%b') }}</div>
+                <div style="font-size:36px; margin-top:5px;">
+                    {% if is_logged %}✅{% else %}⬜{% endif %}
+                </div>
+            </button>
+        </form>
+    {% endfor %}
+</div>
+
+<details>
+    <summary style="cursor:pointer; color:blue; margin:10px 0;">📅 Merkitse suoritus muulle päivälle (myöhässä)</summary>
+    <form method="POST" action="{{ url_for('log_habit', habit_id=habit.id) }}" style="margin:10px 0; padding:10px; background:#f5f5f5; border-radius:8px;">
+        <label>Valitse päivämäärä: <input type="date" name="log_date" value="{{ today_iso }}"></label>
+        <button type="submit">Merkitse suoritetuksi</button>
+    </form>
+</details>
+
+<hr>
+
+<h3>📝 Motivaatiomuistiinpanot</h3>
+
+{% if habit.user_id == session.user_id or is_participant %}
+    <form method="POST" action="{{ url_for('add_note', habit_id=habit.id) }}" style="margin:10px 0;">
+        <input type="text" name="note_text" placeholder="Kirjoita muistiinpano..." style="width:60%;">
+        <button type="submit">Lisää</button>
+    </form>
+{% endif %}
+
+<ul>
+    {% for note in notes %}
+        <li>
+            {{ note.note_text }}
+            <small>({{ note.created_at[:10] }})</small>
+            {% if note.user_id == session.user_id %}
+                <form method="POST" action="{{ url_for('delete_note', habit_id=habit.id, note_id=note.id) }}" style="display:inline;">
+                    <button type="submit" style="background:red;color:white;border:none;padding:2px 8px;border-radius:4px;">Poista</button>
+                </form>
+            {% endif %}
+        </li>
+    {% else %}
+        <li>Ei muistiinpanoja.</li>
+    {% endfor %}
+</ul>
+
+<hr>
+
+<h3>Osallistujat ({{ participants|length }})</h3>
+<ul>
+    {% for p in participants %}
+        <li><a href="{{ url_for('user_profile', username=p.username) }}">{{ p.username }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

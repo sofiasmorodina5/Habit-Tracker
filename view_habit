@@ -1,0 +1,53 @@
+@app.route("/habit/<int:habit_id>")
+def view_habit(habit_id):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    db = get_db()
+    habit = db.execute("""
+        SELECT habits.*, users.username as owner_username
+        FROM habits
+        JOIN users ON habits.user_id = users.id
+        WHERE habits.id = ?
+    """, (habit_id,)).fetchone()
+    if not habit:
+        db.close()
+        return "Tapa ei löydy", 404
+    
+    notes = db.execute(
+        "SELECT * FROM habit_notes WHERE habit_id = ? ORDER BY created_at DESC",
+        (habit_id,)
+    ).fetchall()
+    
+    participants = db.execute("""
+        SELECT users.id, users.username
+        FROM habit_participants
+        JOIN users ON habit_participants.user_id = users.id
+        WHERE habit_participants.habit_id = ?
+    """, (habit_id,)).fetchall()
+    
+    is_owner = (habit["user_id"] == session["user_id"])
+    is_participant = db.execute(
+        "SELECT * FROM habit_participants WHERE habit_id = ? AND user_id = ?",
+        (habit_id, session["user_id"])
+    ).fetchone()
+    
+    logs = db.execute(
+        "SELECT log_date FROM habit_logs WHERE habit_id = ? AND user_id = ?",
+        (habit_id, session["user_id"])
+    ).fetchall()
+    logged_dates = [log["log_date"] for log in logs]
+    
+    streak = get_streak(habit_id, session["user_id"])
+    week_dates = get_week_dates()
+    
+    db.close()
+    return render_template("view_habit.html",
+                         habit=habit,
+                         notes=notes,
+                         participants=participants,
+                         is_owner=is_owner,
+                         is_participant=bool(is_participant),
+                         logged_dates=logged_dates,
+                         streak=streak,
+                         week_dates=week_dates,
+                         bg_color=session.get("background_color", "#ffffff"))

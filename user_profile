@@ -1,0 +1,38 @@
+@app.route("/user/<username>")
+def user_profile(username):
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    if not user:
+        db.close()
+        return "Käyttäjää ei löydy", 404
+    
+    habits = db.execute("""
+        SELECT habits.*,
+               (SELECT COUNT(*) FROM habit_logs WHERE habit_id = habits.id) as log_count,
+               (SELECT COUNT(*) FROM habit_participants WHERE habit_id = habits.id) as participant_count
+        FROM habits
+        WHERE habits.user_id = ?
+        ORDER BY habits.created_at DESC
+    """, (user["id"],)).fetchall()
+    
+    total_logs = db.execute(
+        "SELECT COUNT(*) as count FROM habit_logs WHERE user_id = ?",
+        (user["id"],)
+    ).fetchone()["count"]
+    
+    # Lasketaan paras streak kaikista tavoista
+    best_streak = 0
+    for habit in habits:
+        streak = get_streak(habit["id"], user["id"])
+        if streak > best_streak:
+            best_streak = streak
+    
+    db.close()
+    return render_template("profile.html",
+                         profile_user=user,
+                         habits=habits,
+                         total_logs=total_logs,
+                         best_streak=best_streak,
+                         bg_color=session.get("background_color", "#ffffff"))

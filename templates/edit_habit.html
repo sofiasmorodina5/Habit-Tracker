@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Muokkaa tapaa</h2>
+<form method="POST">
+    <p>Otsikko: <input type="text" name="title" value="{{ habit.title }}" required></p>
+    <p>Kuvaus: <textarea name="description">{{ habit.description }}</textarea></p>
+
+    <p><strong>Tavoite kertaa viikossa:</strong></p>
+    <select name="target_per_week">
+        <option value="0" {% if habit.target_per_week == 0 %}selected{% endif %}>Ei tavoitetta</option>
+        <option value="1" {% if habit.target_per_week == 1 %}selected{% endif %}>1 kerta</option>
+        <option value="2" {% if habit.target_per_week == 2 %}selected{% endif %}>2 kertaa</option>
+        <option value="3" {% if habit.target_per_week == 3 %}selected{% endif %}>3 kertaa</option>
+        <option value="4" {% if habit.target_per_week == 4 %}selected{% endif %}>4 kertaa</option>
+        <option value="5" {% if habit.target_per_week == 5 %}selected{% endif %}>5 kertaa</option>
+        <option value="6" {% if habit.target_per_week == 6 %}selected{% endif %}>6 kertaa</option>
+        <option value="7" {% if habit.target_per_week == 7 %}selected{% endif %}>7 kertaa</option>
+    </select>
+
+    {% set selected_days = categories | selectattr('category_name', 'equalto', 'weekday') | map(attribute='category_value') | list %}
+    <p><strong>Viikonpäivät</strong>:</p>
+    {% for day in ["maanantai", "tiistai", "keskiviikko", "torstai", "perjantai", "lauantai", "sunnuntai"] %}
+        <label>
+            <input type="checkbox" name="weekday" value="{{ day }}"
+                   {% if day in selected_days %}checked{% endif %}>
+            {{ day }}
+        </label><br>
+    {% endfor %}
+
+    {% set freq = categories | selectattr('category_name', 'equalto', 'frequency') | map(attribute='category_value') | first %}
+    <p><strong>Toistuvuus</strong>:</p>
+    <select name="frequency">
+        <option value="">Ei valintaa</option>
+        <option value="daily" {% if freq == 'daily' %}selected{% endif %}>Päivittäin</option>
+        <option value="weekly" {% if freq == 'weekly' %}selected{% endif %}>Viikoittain</option>
+        <option value="monthly" {% if freq == 'monthly' %}selected{% endif %}>Kuukausittain</option>
+    </select>
+
+    <br><br>
+    <button type="submit">Tallenna muutokset</button>
+</form>
+{% endblock %}

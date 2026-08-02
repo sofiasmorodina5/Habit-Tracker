@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Habit Tracker</title>
+    <style>
+        body {
+            background-color: {{ bg_color|default('#ffffff') }};
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        nav a {
+            margin-right: 15px;
+        }
+        .habit-box {
+            border: 1px solid #ccc;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">Etusivu</a>
+        {% if session.user_id %}
+            <a href="{{ url_for('add_habit') }}">Lisää tapa</a>
+            <a href="{{ url_for('settings') }}">Asetukset</a>
+            <a href="{{ url_for('user_profile', username=session.username) }}">Oma profiili</a>
+            <a href="{{ url_for('logout') }}">Kirjaudu ulos ({{ session.username }})</a>
+        {% else %}
+            <a href="{{ url_for('login') }}">Kirjaudu</a>
+            <a href="{{ url_for('register') }}">Rekisteröidy</a>
+        {% endif %}
+    </nav>
+    <hr>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
