@@ -1,7 +1,7 @@
-Habit-Tracker
+<h1>Habit-Tracker</h1>
 
 
-Sovelluksen toiminnot:
+<h2>Sovelluksen toiminnot:</h2>
 
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
 - Käyttäjä pystyy lisäämään tapoja sekä muokkaamaan ja poistamaan lisäämiään tapoja. Myös jo luotoihin tapoihin muut käyttäjät voivat liittyä.
@@ -16,25 +16,26 @@ Sovelluksen toiminnot:
 
 
 
-Sovelluksen asennus
+<h2>Sovelluksen asennus</h2>
 
 Ohjeet toimivat macOS- ja Linux-ympäristöissä. Tarkista ensin, että Python ja SQLite ovat käytettävissä:
 
-Mene terminaaliin ja laita:
+<h3>Mene terminaaliin ja laita:</h3>
 
 python3 --version
 
 sqlite3 --version
 
 
-Kloonaa repositorio ja siirry sen hakemistoon:
+<h3>Kloonaa repositorio ja siirry sen hakemistoon:</h3>
+
 
 git clone https://github.com/sofiasmorodina5/Habit-Tracker.git
 
 cd Habit-Tracker
 
 
-Luo virtuaaliympäristö ja asenna Flask:
+<h3>Luo virtuaaliympäristö ja asenna Flask:</h3>
 
 python3 -m venv venv
 
@@ -45,7 +46,7 @@ python3 -m pip install flask
 sqlite3 database.db < schema.sql
 
 
-Käynnistä sovellus:
+<h3>Käynnistä sovellus:</h3>
 
 flask run
 
@@ -54,13 +55,13 @@ Sovellusta voi käyttää osoitteessa http://127.0.0.1:5000
 
 
 
-Sovelluksen testaaminen
+<h2>Sovelluksen testaaminen</h2>
 
 Voit luoda vain yhden käyttäjätunnuksen, sillä käyttö onnistuu myös yhdellä käyttäjällä. Jos taas haluat nähdä, miten kaksi käyttäjää vuorovaikuttaa, voit luoda kaksi.
 
 1.Rekisteröidy ja kirjaudu ensimmäisellä käyttäjällä.
 
-2. Lisää uusi tapa ja valitse sille halutessaan luokittelu.
+2.Lisää uusi tapa ja valitse sille halutessaan luokittelu.
 
 3.Tarkista, että tapa näkyy etusivulla ja että onnistumisilmoitus tulee näkyviin.
 
