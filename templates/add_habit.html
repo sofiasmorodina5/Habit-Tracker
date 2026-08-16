@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Lisää uusi tapa</h2>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <p>
+        <label>Otsikko:</label>
+        <input type="text" name="title" required>
+    </p>
+    <p>
+        <label>Kuvaus:</label>
+        <textarea name="description"></textarea>
+    </p>
+    <p><strong>Luokittelut:</strong></p>
+    {% for category in categories %}
+        <label>
+            <input type="checkbox" name="categories" value="{{ category.name }}">
+            {{ category.name }}
+        </label><br>
+    {% endfor %}
+    <br><br>
+    <button type="submit">Lisää</button>
+</form>
+{% endblock %}
