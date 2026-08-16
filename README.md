@@ -23,41 +23,71 @@ Ohjeet toimivat macOS- ja Linux-ympäristöissä. Tarkista ensin, että Python j
 Mene terminaaliin ja laita:
 
 python3 --version
+
 sqlite3 --version
 
+
 Kloonaa repositorio ja siirry sen hakemistoon:
+
 git clone https://github.com/sofiasmorodina5/Habit-Tracker.git
+
 cd Habit-Tracker
 
+
 Luo virtuaaliympäristö ja asenna Flask:
+
 python3 -m venv venv
+
 source venv/bin/activate
+
 python3 -m pip install flask
+
 sqlite3 database.db < schema.sql
 
+
 Käynnistä sovellus:
+
 flask run
 
 Sovellusta voi käyttää osoitteessa http://127.0.0.1:5000
 
 
+
+
 Sovelluksen testaaminen
+
 Voit luoda vain yhden käyttäjätunnuksen, sillä käyttö onnistuu myös yhdellä käyttäjällä. Jos taas haluat nähdä, miten kaksi käyttäjää vuorovaikuttaa, voit luoda kaksi.
 
-Rekisteröidy ja kirjaudu ensimmäisellä käyttäjällä.
-Lisää uusi tapa ja valitse sille halutessaan luokittelu.
-Tarkista, että tapa näkyy etusivulla ja että onnistumisilmoitus tulee näkyviin.
-Muokkaa lisäämääsi tapaa ja vaihda luokittelua. Tarkista, että muutokset tallentuvat.
-Poista tapa ja varmista, että se poistuu listalta.
-Yritä lisätä tapa tyhjällä otsikolla. Tavan ei pitäisi muodostua.
-Klikkaa tavan otsikkoa ja siirry tavan omalle sivulle.
-Klikkaa kalenterin päivää merkitäksesi suorituksen edellis päivänä. Klikkaa uudelleen poistaaksesi merkinnän.
-Tarkista, että Streak (putki) ja "Tällä viikolla" -laskuri päivittyvät oikein.
-Luo toinen käyttäjä.
-Kirjoita kommentti toisen käyttäjän tapaan (tai omaasi) ja tarkista, että se näkyy.
-Lisää motivaatiomuistiinpano ja varmista, että se tallentuu ja voit poistaa sen.
-Klikkaa "Oma profiili" ja tarkista, että tilastot (suoritukset, paras putki) näkyvät.
-Kokeile hakutoimintoa kirjoittamalla hakukenttään osa tavan nimestä.
-Kirjaudu ulos ja yritä mennä osoitteeseen /add. Sovelluksen pitäisi ohjata kirjautumissivulle.
-Kokeile CSRF-suojausta: poista lomakkeesta piilotettu csrf_token-kenttä ja lähetä lomake. Pitäisi tulla 403-virhe.
-Lopuksi voit kirjautua ulos.
+1.Rekisteröidy ja kirjaudu ensimmäisellä käyttäjällä.
+
+2. Lisää uusi tapa ja valitse sille halutessaan luokittelu.
+
+3.Tarkista, että tapa näkyy etusivulla ja että onnistumisilmoitus tulee näkyviin.
+
+3.Muokkaa lisäämääsi tapaa ja vaihda luokittelua. Tarkista, että muutokset tallentuvat.
+
+4.Poista tapa ja varmista, että se poistuu listalta.
+
+5.Yritä lisätä tapa tyhjällä otsikolla. Tavan ei pitäisi muodostua.
+
+6.Klikkaa tavan otsikkoa ja siirry tavan omalle sivulle.
+
+7.Klikkaa kalenterin päivää merkitäksesi suorituksen edellis päivänä. Klikkaa uudelleen poistaaksesi merkinnän.
+
+8.Tarkista, että Streak (putki) ja "Tällä viikolla" -laskuri päivittyvät oikein.
+
+9.Luo toinen käyttäjä.
+
+10.Kirjoita kommentti toisen käyttäjän tapaan (tai omaasi) ja tarkista, että se näkyy.
+
+11.Lisää motivaatiomuistiinpano ja varmista, että se tallentuu ja voit poistaa sen.
+
+12.Klikkaa "Oma profiili" ja tarkista, että tilastot (suoritukset, paras putki) näkyvät.
+
+13.Kokeile hakutoimintoa kirjoittamalla hakukenttään osa tavan nimestä.
+
+14.Kirjaudu ulos ja yritä mennä osoitteeseen /add. Sovelluksen pitäisi ohjata kirjautumissivulle.
+
+15.Kokeile CSRF-suojausta: poista lomakkeesta piilotettu csrf_token-kenttä ja lähetä lomake. Pitäisi tulla 403-virhe.
+
+16.Lopuksi voit kirjautua ulos.
