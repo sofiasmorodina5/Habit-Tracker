@@ -32,6 +32,7 @@ CREATE TABLE habits (
     user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
     description TEXT,
+    difficulty TEXT DEFAULT 'neutraali',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
 );

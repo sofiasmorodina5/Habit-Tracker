@@ -3,16 +3,33 @@
 {% block content %}
 <h2>Lisää uusi tapa</h2>
 
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="flash-message">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p>
         <label>Otsikko:</label>
-        <input type="text" name="title" required>
+        <input type="text" name="title" value="{{ title or '' }}" required>
     </p>
     <p>
         <label>Kuvaus:</label>
-        <textarea name="description"></textarea>
+        <textarea name="description">{{ description or '' }}</textarea>
     </p>
+
+    <p><strong>Vaikeustaso:</strong></p>
+    <select name="difficulty">
+        <option value="helppo">Helppo</option>
+        <option value="neutraali" selected>Neutraali</option>
+        <option value="vaativa">Vaativa</option>
+    </select>
+    <br><br>
+
     <p><strong>Luokittelut:</strong></p>
     {% for category in categories %}
         <label>

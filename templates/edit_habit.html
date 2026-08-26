@@ -3,6 +3,14 @@
 {% block content %}
 <h2>Muokkaa tapaa</h2>
 
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="flash-message">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p>
@@ -13,6 +21,15 @@
         <label>Kuvaus:</label>
         <textarea name="description">{{ habit.description }}</textarea>
     </p>
+
+    <p><strong>Vaikeustaso:</strong></p>
+    <select name="difficulty">
+        <option value="helppo" {% if habit.difficulty == 'helppo' %}selected{% endif %}>Helppo</option>
+        <option value="neutraali" {% if habit.difficulty == 'neutraali' or not habit.difficulty %}selected{% endif %}>Neutraali</option>
+        <option value="vaativa" {% if habit.difficulty == 'vaativa' %}selected{% endif %}>Vaativa</option>
+    </select>
+    <br><br>
+
     <p><strong>Luokittelut:</strong></p>
     {% for category in categories %}
         <label>

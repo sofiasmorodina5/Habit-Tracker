@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h2>{{ profile_user.username }}</h2>
+<h2>Käyttäjän {{ profile_user.username }} profiili</h2>
 
 <div style="display:flex; gap:30px; flex-wrap:wrap; margin:10px 0; padding:15px; background-color:#f0f0f0; border-radius:10px;">
     <div>
@@ -15,8 +15,8 @@
     </div>
 </div>
 
-<h3>{{ profile_user.username }}:n luomat tavat</h3>
-{% for habit in habits %}
+<h3>Käyttäjän luomat tavat</h3>
+{% for habit in own_habits %}
     <div class="habit-box">
         <a href="{{ url_for('view_habit', habit_id=habit.id) }}"><strong>{{ habit.title }}</strong></a>
         <p>{{ habit.description }}</p>
@@ -26,5 +26,18 @@
     </div>
 {% else %}
     <p>Tämä käyttäjä ei ole lisännyt vielä tapoja.</p>
+{% endfor %}
+
+<h3>Tavat, joihin {{ profile_user.username }} osallistuu</h3>
+{% for habit in participating %}
+    <div class="habit-box">
+        <a href="{{ url_for('view_habit', habit_id=habit.id) }}"><strong>{{ habit.title }}</strong></a>
+        <p>{{ habit.description }}</p>
+        <small>Lisännyt: <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a></small>
+        <br>
+        <small>Luotu: {{ habit.created_at[:10] }}</small>
+    </div>
+{% else %}
+    <p>{{ profile_user.username }} ei osallistu vielä mihinkään tapaan.</p>
 {% endfor %}
 {% endblock %}

@@ -3,12 +3,12 @@
 {% block content %}
 <h2>{{ habit.title }}</h2>
 <p>{{ habit.description }}</p>
+<p><strong>Vaikeustaso:</strong> {{ difficulty }}</p>
 
 <div style="display:flex; gap:20px; flex-wrap:wrap; margin:10px 0;">
     <p><strong>Lisännyt:</strong> <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a></p>
     <p><strong>Luotu:</strong> {{ habit.created_at[:10] }}</p>
     <p><strong>🔥 Streak:</strong> <span style="font-size:24px; color:orange;">{{ streak }}</span> päivää putkeen!</p>
-    <p><strong>Tällä viikolla:</strong> {{ week_count }} suoritusta</p>
 </div>
 
 {% if categories %}
@@ -37,17 +37,25 @@
 
 <h3>📅 Klikkaa päivää merkitäksesi suoritetuksi</h3>
 
+<div style="display:flex; align-items:center; gap:15px; margin:10px 0;">
+    <a href="{{ url_for('view_habit', habit_id=habit.id, week_offset=week_offset-1) }}" style="font-size:24px; text-decoration:none; background:#ddd; padding:5px 15px; border-radius:5px;">◀</a>
+    <span style="font-weight:bold;">
+        Viikko {{ monday.strftime('%W') }} ({{ monday.strftime('%d.%m.%Y') }} – {{ sunday.strftime('%d.%m.%Y') }})
+    </span>
+    <a href="{{ url_for('view_habit', habit_id=habit.id, week_offset=week_offset+1) }}" style="font-size:24px; text-decoration:none; background:#ddd; padding:5px 15px; border-radius:5px;">▶</a>
+</div>
+
 <div style="display:flex; flex-wrap:wrap; gap:10px; margin:20px 0;">
     {% for day in week_dates %}
         {% set day_str = day.isoformat() %}
         {% set is_logged = day_str in logged_dates %}
-        <form method="POST" action="{% if is_logged %}{{ url_for('log_habit', habit_id=habit.id) }}{% else %}{{ url_for('log_habit', habit_id=habit.id) }}{% endif %}" style="margin:0; display:inline-block;">
+        <form method="POST" action="{% if is_logged %}{{ url_for('unlog_habit', habit_id=habit.id) }}{% else %}{{ url_for('log_habit', habit_id=habit.id) }}{% endif %}" style="margin:0; display:inline-block;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="log_date" value="{{ day_str }}">
-            <button type="submit" style="border:2px solid {% if is_logged %}#4CAF50{% else %}#ccc{% endif %}; padding:15px; border-radius:12px; min-width:80px; background-color:{% if is_logged %}#e8f5e9{% else %}#f9f9f9{% endif %}; cursor:pointer; font-size:inherit; text-align:center; display:block;">
+            <button type="submit" style="border:2px solid {% if is_logged %}#2e7d32{% else %}#1a73e8{% endif %}; padding:15px; border-radius:12px; min-width:80px; background-color:{% if is_logged %}#4caf50{% else %}#1a73e8{% endif %}; cursor:pointer; font-size:inherit; text-align:center; display:block; color:white;">
                 <div style="font-size:16px; font-weight:bold;">{{ day.strftime('%a') }}</div>
                 <div style="font-size:28px;">{{ day.strftime('%d') }}</div>
-                <div style="font-size:14px; color:#666;">{{ day.strftime('%b') }}</div>
+                <div style="font-size:14px; opacity:0.8;">{{ day.strftime('%b') }}</div>
                 <div style="font-size:36px; margin-top:5px;">
                     {% if is_logged %}✅{% else %}⬜{% endif %}
                 </div>
@@ -56,11 +64,13 @@
     {% endfor %}
 </div>
 
+<p><strong>Tällä viikolla suoritettu:</strong> {{ week_count }} kertaa</p>
+
 <details>
     <summary style="cursor:pointer; color:blue; margin:10px 0;">📅 Merkitse suoritus muulle päivälle</summary>
     <form method="POST" action="{{ url_for('log_habit', habit_id=habit.id) }}" style="margin:10px 0; padding:10px; background:#f5f5f5; border-radius:8px;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label>Valitse päivämäärä: <input type="date" name="log_date" value="{{ today_iso }}"></label>
+        <label>Valitse päivämäärä: <input type="date" name="log_date" value="{{ date.today().isoformat() }}"></label>
         <button type="submit">Merkitse suoritetuksi</button>
     </form>
 </details>
@@ -112,6 +122,7 @@
 <ul>
     {% for note in notes %}
         <li>
+            <strong><a href="{{ url_for('user_profile', username=note.username) }}">{{ note.username }}</a></strong>:
             {{ note.note_text }}
             <small>({{ note.created_at[:10] }})</small>
             {% if note.user_id == session.user_id %}
