@@ -7,6 +7,18 @@ from db import get_db, query, query_one, execute
 from config import SECRET_KEY
 from utils import generate_csrf_token, check_csrf
 
+def validate_habit(title, description, difficulty):
+    errors = []
+    if not title or not title.strip():
+        errors.append("Otsikko on pakollinen")
+    elif len(title) > 30:
+        errors.append("Otsikko voi olla enintään 30 merkkiä pitkä")
+    if description and len(description) > 30:
+        errors.append("Kuvaus voi olla enintään 30 merkkiä pitkä")
+    if difficulty not in ["helppo", "neutraali", "vaativa"]:
+        errors.append("Virheellinen vaikeustaso")
+    return errors
+
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
@@ -62,18 +74,26 @@ def register():
         check_csrf()
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
+        
+        errors = []
         if not username or len(username) < 3:
-            flash("Käyttäjätunnuksen on oltava vähintään 3 merkkiä")
-            return render_template("register.html", username=username)
+            errors.append("Käyttäjätunnuksen on oltava vähintään 3 merkkiä")
+        elif len(username) > 30:
+            errors.append("Käyttäjätunnus voi olla enintään 30 merkkiä")
         if not username.isalnum():
-            flash("Käyttäjätunnus saa sisältää vain kirjaimia ja numeroita")
-            return render_template("register.html", username=username)
+            errors.append("Käyttäjätunnus saa sisältää vain kirjaimia ja numeroita")
         if not password or len(password) < 8:
-            flash("Salasanan on oltava vähintään 8 merkkiä")
-            return render_template("register.html", username=username)
+            errors.append("Salasanan on oltava vähintään 8 merkkiä")
+        elif len(password) > 30:
+            errors.append("Salasana voi olla enintään 30 merkkiä")
         if get_user_by_username(username):
-            flash("Käyttäjätunnus on jo varattu")
+            errors.append("Käyttäjätunnus on jo varattu")
+        
+        if errors:
+            for error in errors:
+                flash(error)
             return render_template("register.html", username=username)
+        
         password_hash = generate_password_hash(password)
         execute(
             "INSERT INTO users (username, password_hash) VALUES (?, ?)",
@@ -179,20 +199,17 @@ def add_habit():
     check_csrf()
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()
-    errors = []
-    if not title:
-        errors.append("Otsikko on pakollinen")
-    elif len(title) > 100:
-        errors.append("Otsikko on liian pitkä (max 100 merkkiä)")
-    if description and len(description) > 500:
-        errors.append("Kuvaus on liian pitkä (max 500 merkkiä)")
+    difficulty = request.form.get("difficulty", "neutraali")
+    
+    errors = validate_habit(title, description, difficulty)
     if errors:
         for error in errors:
             flash(error)
         return render_template("add_habit.html", categories=categories, title=title, description=description)
+    
     habit_id = execute(
-        "INSERT INTO habits (user_id, title, description) VALUES (?, ?, ?)",
-        (session["user_id"], title, description)
+        "INSERT INTO habits (user_id, title, description, difficulty) VALUES (?, ?, ?, ?)",
+        (session["user_id"], title, description, difficulty)
     )
     selected_categories = request.form.getlist("categories")
     for category in selected_categories:
@@ -221,20 +238,17 @@ def edit_habit(habit_id):
     check_csrf()
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()
-    errors = []
-    if not title:
-        errors.append("Otsikko on pakollinen")
-    elif len(title) > 100:
-        errors.append("Otsikko on liian pitkä (max 100 merkkiä)")
-    if description and len(description) > 500:
-        errors.append("Kuvaus on liian pitkä (max 500 merkkiä)")
+    difficulty = request.form.get("difficulty", "neutraali")
+    
+    errors = validate_habit(title, description, difficulty)
     if errors:
         for error in errors:
             flash(error)
         return render_template("edit_habit.html", habit=habit, categories=categories, selected_categories=selected)
+    
     execute(
-        "UPDATE habits SET title = ?, description = ? WHERE id = ?",
-        (title, description, habit_id)
+        "UPDATE habits SET title = ?, description = ?, difficulty = ? WHERE id = ?",
+        (title, description, difficulty, habit_id)
     )
     execute("DELETE FROM habit_categories WHERE habit_id = ?", (habit_id,))
     selected_categories = request.form.getlist("categories")
@@ -343,6 +357,10 @@ def add_note(habit_id):
     check_csrf()
     note_text = request.form.get("note_text", "").strip()
     if not note_text:
+        flash("Muistiinpano ei voi olla tyhjä")
+        return redirect(request.referrer or url_for("view_habit", habit_id=habit_id))
+    if len(note_text) > 30:
+        flash("Muistiinpano voi olla enintään 30 merkkiä pitkä")
         return redirect(request.referrer or url_for("view_habit", habit_id=habit_id))
     execute(
         "INSERT INTO habit_notes (habit_id, user_id, note_text) VALUES (?, ?, ?)",
@@ -368,6 +386,10 @@ def add_comment(habit_id):
     check_csrf()
     comment_text = request.form.get("comment_text", "").strip()
     if not comment_text:
+        flash("Kommentti ei voi olla tyhjä")
+        return redirect(request.referrer or url_for("view_habit", habit_id=habit_id))
+    if len(comment_text) > 30:
+        flash("Kommentti voi olla enintään 30 merkkiä pitkä")
         return redirect(request.referrer or url_for("view_habit", habit_id=habit_id))
     execute(
         "INSERT INTO habit_comments (habit_id, user_id, comment_text) VALUES (?, ?, ?)",

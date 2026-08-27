@@ -13,14 +13,14 @@
 
 <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
     <p>
         <label>Otsikko:</label>
-        <input type="text" name="title" value="{{ habit.title }}" required>
+        <input type="text" name="title" value="{{ habit.title }}" required maxlength="30">
     </p>
     <p>
         <label>Kuvaus:</label>
-        <textarea name="description">{{ habit.description }}</textarea>
-    </p>
+        <textarea name="description" maxlength="30">{{ habit.description }}</textarea>    </p>
 
     <p><strong>Vaikeustaso:</strong></p>
     <select name="difficulty">

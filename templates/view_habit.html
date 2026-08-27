@@ -82,7 +82,7 @@
 {% if habit.user_id == session.user_id or is_participant %}
     <form method="POST" action="{{ url_for('add_comment', habit_id=habit.id) }}" style="margin:10px 0;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="text" name="comment_text" placeholder="Kirjoita kommentti..." style="width:60%;">
+        <input type="text" name="comment_text" placeholder="Kirjoita kommentti..." style="width:60%;" maxlength="30">
         <button type="submit">Lähetä</button>
     </form>
 {% else %}
@@ -114,7 +114,7 @@
 {% if habit.user_id == session.user_id or is_participant %}
     <form method="POST" action="{{ url_for('add_note', habit_id=habit.id) }}" style="margin:10px 0;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="text" name="note_text" placeholder="Kirjoita muistiinpano..." style="width:60%;">
+        <input type="text" name="note_text" placeholder="Kirjoita muistiinpano..." style="width:60;"maxlength="30">
         <button type="submit">Lisää</button>
     </form>
 {% endif %}

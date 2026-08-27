@@ -15,7 +15,7 @@
     </div>
 </div>
 
-<h3>{{ profile_user.username }}:n luomat tavat</h3>
+<h3>Omat luodut tavat</h3>
 {% for habit in own_habits %}
     <div class="habit-box">
         <a href="{{ url_for('view_habit', habit_id=habit.id) }}"><strong>{{ habit.title }}</strong></a>
