@@ -3,9 +3,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date, datetime, timedelta
 import secrets
 import os
+
 from db import get_db, query, query_one, execute
 from config import SECRET_KEY
 from utils import generate_csrf_token, check_csrf
+
 from user import (
     get_user_by_username, get_user_by_id, create_user,
     get_total_logs, get_participating_habits
@@ -25,6 +27,7 @@ from participant import (
 )
 from comment import get_comments_by_habit, add_comment, delete_comment
 from note import get_notes_by_habit, add_note, delete_note
+
 def validate_habit(title, description, difficulty):
     errors = []
     if not title or not title.strip():
@@ -308,32 +311,19 @@ def log_habit(habit_id):
     log_date = request.form.get("log_date", date.today().isoformat())
     if log_date > date.today().isoformat():
         flash("Et voi merkitä tulevia päiviä suoritetuiksi")
-        return redirect(request.referrer or url_for("index"))
-    habit = query_one("SELECT user_id FROM habits WHERE id = ?", (habit_id,))
+        return redirect(request.referrer or url_for("view_habit", habit_id=habit_id))
+    habit = get_habit_with_owner(habit_id)
     if not habit:
-        return "Tapa ei löydy", 404
+        flash("Tapa ei löydy")
+        return redirect(request.referrer or url_for("index"))
     is_owner = (habit["user_id"] == session["user_id"])
-    is_participant = query_one(
-        "SELECT * FROM habit_participants WHERE habit_id = ? AND user_id = ?",
-        (habit_id, session["user_id"])
-    )
+    is_participant = bool(get_participant(habit_id, session["user_id"]))
     if not (is_owner or is_participant):
-        return "Et voi merkitä tätä tapaa", 403
-    existing = query_one(
-        "SELECT * FROM habit_logs WHERE habit_id = ? AND user_id = ? AND log_date = ?",
-        (habit_id, session["user_id"], log_date)
-    )
-    if existing:
-        execute(
-            "DELETE FROM habit_logs WHERE habit_id = ? AND user_id = ? AND log_date = ?",
-            (habit_id, session["user_id"], log_date)
-        )
-    else:
-        execute(
-            "INSERT INTO habit_logs (habit_id, user_id, log_date) VALUES (?, ?, ?)",
-            (habit_id, session["user_id"], log_date)
-        )
-    return redirect(request.referrer or url_for("index"))
+        flash("Et voi merkitä tätä tapaa. Osallistu ensin painamalla 'Osallistu'-nappia.")
+        return redirect(request.referrer or url_for("view_habit", habit_id=habit_id))
+    toggle_log(habit_id, session["user_id"], log_date)
+    flash("Suoritus merkattu!")
+    return redirect(request.referrer or url_for("view_habit", habit_id=habit_id))
 
 @app.route("/habit/<int:habit_id>/unlog", methods=["POST"])
 def unlog_habit(habit_id):
