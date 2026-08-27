@@ -431,54 +431,27 @@ def view_habit(habit_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
     week_offset = request.args.get("week_offset", 0, type=int)
-    habit = query_one("""
-        SELECT habits.*, users.username as owner_username
-        FROM habits
-        JOIN users ON habits.user_id = users.id
-        WHERE habits.id = ?
-    """, (habit_id,))
+    habit = get_habit_with_owner(habit_id)
     if not habit:
-        return "Tapa ei löydy", 404
-    notes = query(
-        "SELECT * FROM habit_notes WHERE habit_id = ? ORDER BY created_at DESC",
-        (habit_id,)
-    )
-    comments = query("""
-        SELECT habit_comments.*, users.username
-        FROM habit_comments
-        JOIN users ON habit_comments.user_id = users.id
-        WHERE habit_comments.habit_id = ?
-        ORDER BY habit_comments.created_at DESC
-    """, (habit_id,))
-    participants = query("""
-        SELECT users.id, users.username
-        FROM habit_participants
-        JOIN users ON habit_participants.user_id = users.id
-        WHERE habit_participants.habit_id = ?
-    """, (habit_id,))
+        flash("Tapa ei löydy")
+        return redirect(url_for("index"))
+    notes = get_notes_by_habit(habit_id)
+    comments = get_comments_by_habit(habit_id)
+    participants = get_participants(habit_id)
     is_owner = (habit["user_id"] == session["user_id"])
-    is_participant = query_one(
-        "SELECT * FROM habit_participants WHERE habit_id = ? AND user_id = ?",
-        (habit_id, session["user_id"])
-    )
-    logs = query(
-        "SELECT log_date FROM habit_logs WHERE habit_id = ? AND user_id = ?",
-        (habit_id, session["user_id"])
-    )
-    logged_dates = [log["log_date"] for log in logs]
+    is_participant = bool(get_participant(habit_id, session["user_id"]))
+    logged_dates = get_logs_for_habit(habit_id, session["user_id"])
     streak = get_streak(habit_id, session["user_id"])
+    week_dates = get_week_dates()
+    week_count = get_week_log_count(habit_id, session["user_id"])
     today_iso = date.today().isoformat()
     categories = get_habit_categories(habit_id)
     
+    # Lasketaan viikon maanantai ja sunnuntai
     today = date.today()
     target_date = today + timedelta(weeks=week_offset)
     monday = target_date - timedelta(days=target_date.weekday())
     sunday = monday + timedelta(days=6)
-    week_dates = [monday + timedelta(days=i) for i in range(7)]
-    week_count = 0
-    for d in logged_dates:
-        if monday <= datetime.strptime(d, "%Y-%m-%d").date() <= sunday:
-            week_count += 1
     
     return render_template("view_habit.html",
                          habit=habit,
@@ -486,7 +459,7 @@ def view_habit(habit_id):
                          comments=comments,
                          participants=participants,
                          is_owner=is_owner,
-                         is_participant=bool(is_participant),
+                         is_participant=is_participant,
                          logged_dates=logged_dates,
                          streak=streak,
                          week_dates=week_dates,
