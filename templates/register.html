@@ -1,17 +1,21 @@
+{% extends "layout.html" %}
+
 {% block content %}
 <h2>Rekisteröidy</h2>
 
-<form method="POST">
+<form method="POST" action="{{ url_for('register') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p>
-        <label>Käyttäjätunnus:</label>
-        <input type="text" name="username" value="{{ username or '' }}" required maxlength="30">    </p>
+        <label>Käyttäjätunnus (3-30 merkkiä, vain kirjaimia ja numeroita):</label>
+        <input type="text" name="username" value="{{ username or '' }}" required>
+    </p>
     <p>
-        <label>Salasana:</label>
-        <input type="password" name="password" required maxlength="30">   
+        <label>Salasana (8-30 merkkiä):</label>
+        <input type="password" name="password" value="{{ password or '' }}" required>
     </p>
     <button type="submit">Luo tunnus</button>
 </form>
 
 <p><a href="{{ url_for('login') }}">Onko sinulla jo tunnus? Kirjaudu</a></p>
 {% endblock %}
+

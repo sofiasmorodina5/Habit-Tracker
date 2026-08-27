@@ -74,31 +74,41 @@ def register():
         check_csrf()
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        
         errors = []
+        username_valid = True
+        password_valid = True
+
         if not username or len(username) < 3:
             errors.append("Käyttäjätunnuksen on oltava vähintään 3 merkkiä")
+            username_valid = False
         elif len(username) > 30:
             errors.append("Käyttäjätunnus voi olla enintään 30 merkkiä")
+            username_valid = False
         if not username.isalnum():
             errors.append("Käyttäjätunnus saa sisältää vain kirjaimia ja numeroita")
-        if not password or len(password) < 8:
-            errors.append("Salasanan on oltava vähintään 8 merkkiä")
-        elif len(password) > 30:
-            errors.append("Salasana voi olla enintään 30 merkkiä")
+            username_valid = False
         if get_user_by_username(username):
             errors.append("Käyttäjätunnus on jo varattu")
-        
+            username_valid = False
+
+        if not password or len(password) < 8:
+            errors.append("Salasanan on oltava vähintään 8 merkkiä")
+            password_valid = False
+        elif len(password) > 30:
+            errors.append("Salasana voi olla enintään 30 merkkiä")
+            password_valid = False
+
         if errors:
+            if not username_valid:
+                username = ""
+            if not password_valid:
+                password = ""
             for error in errors:
                 flash(error)
-            return render_template("register.html", username=username)
-        
+            return render_template("register.html", username=username, password=password)
+
         password_hash = generate_password_hash(password)
-        execute(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-            (username, password_hash)
-        )
+        create_user(username, password_hash)
         flash("Rekisteröityminen onnistui! Voit nyt kirjautua sisään.")
         return redirect(url_for("login"))
     return render_template("register.html")

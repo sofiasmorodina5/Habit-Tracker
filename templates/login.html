@@ -3,7 +3,7 @@
 {% block content %}
 <h2>Kirjaudu</h2>
 
-<form method="POST">
+<form method="POST" action="{{ url_for('login') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p>
         <label>Käyttäjätunnus:</label>
