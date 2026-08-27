@@ -6,7 +6,25 @@ import os
 from db import get_db, query, query_one, execute
 from config import SECRET_KEY
 from utils import generate_csrf_token, check_csrf
-
+from user import (
+    get_user_by_username, get_user_by_id, create_user,
+    get_total_logs, get_participating_habits
+)
+from habit import (
+    get_all_habits, search_habits, get_habit_with_owner,
+    add_habit, update_habit, delete_habit,
+    get_habits_by_user, add_habit_category, delete_habit_categories,
+    get_habit_categories, get_all_categories
+)
+from log import (
+    get_logs_for_habit, get_log_for_date, toggle_log,
+    get_streak, get_week_log_count, get_week_dates
+)
+from participant import (
+    get_participants, get_participant, add_participant, remove_participant
+)
+from comment import get_comments_by_habit, add_comment, delete_comment
+from note import get_notes_by_habit, add_note, delete_note
 def validate_habit(title, description, difficulty):
     errors = []
     if not title or not title.strip():
