@@ -3,12 +3,13 @@
 {% block content %}
 <h2>{{ habit.title }}</h2>
 <p>{{ habit.description }}</p>
-<p><strong>Vaikeustaso:</strong> {{ difficulty }}</p>
+<p><strong>Vaikeustaso:</strong> {{ habit.difficulty }}</p>
 
 <div style="display:flex; gap:20px; flex-wrap:wrap; margin:10px 0;">
     <p><strong>Lisännyt:</strong> <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a></p>
     <p><strong>Luotu:</strong> {{ habit.created_at[:10] }}</p>
     <p><strong>🔥 Streak:</strong> <span style="font-size:24px; color:orange;">{{ streak }}</span> päivää putkeen!</p>
+    <p><strong>Tällä viikolla:</strong> {{ week_count }} suoritusta</p>
 </div>
 
 {% if categories %}
@@ -17,7 +18,7 @@
 
 {% if habit.user_id == session.user_id %}
     <a href="{{ url_for('edit_habit', habit_id=habit.id) }}">Muokkaa</a>
-    <form method="POST" action="{{ url_for('delete_habit', habit_id=habit.id) }}" style="display:inline;">
+    <form method="POST" action="{{ url_for('delete_habit_route', habit_id=habit.id) }}" style="display:inline;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" onclick="return confirm('Poistetaanko?')">Poista</button>
     </form>
@@ -70,7 +71,7 @@
     <summary style="cursor:pointer; color:blue; margin:10px 0;">📅 Merkitse suoritus muulle päivälle</summary>
     <form method="POST" action="{{ url_for('log_habit', habit_id=habit.id) }}" style="margin:10px 0; padding:10px; background:#f5f5f5; border-radius:8px;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label>Valitse päivämäärä: <input type="date" name="log_date" value="{{ date.today().isoformat() }}"></label>
+        <label>Valitse päivämäärä: <input type="date" name="log_date" value="{{ today_iso }}"></label>
         <button type="submit">Merkitse suoritetuksi</button>
     </form>
 </details>
@@ -114,9 +115,11 @@
 {% if habit.user_id == session.user_id or is_participant %}
     <form method="POST" action="{{ url_for('add_note', habit_id=habit.id) }}" style="margin:10px 0;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="text" name="note_text" placeholder="Kirjoita muistiinpano..." style="width:60;"maxlength="30">
+        <input type="text" name="note_text" placeholder="Kirjoita muistiinpano..." style="width:60%;" maxlength="30">
         <button type="submit">Lisää</button>
     </form>
+{% else %}
+    <p><em>Osallistu tapaan lisätäksesi muistiinpanoja.</em></p>
 {% endif %}
 
 <ul>
