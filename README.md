@@ -3,16 +3,26 @@
 
 <h2>Sovelluksen toiminnot:</h2>
 
-- Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
-- Käyttäjä pystyy lisäämään tapoja sekä muokkaamaan ja poistamaan lisäämiään tapoja. Myös jo luotoihin tapoihin muut käyttäjät voivat liittyä.
-- Käyttäjäsivu näyttää käyttäjän ja muiden lisäämiä tapoja ja omien suorituskertojen määrää.
-- Käyttäjä pystyy poistamaan tavan omalta listalta.
-- Käyttäjä pystyy löytämään tapoja nimen perusteella.
-- Käyttäjä pystyy lisäämään omiin ja muiden käyttäjien tapoihin muistiinpanot ja motivaatiorepliikit.
-- Sovelluksessa on käyttäjäsivut, jotka näyttävät tilastoja eli montako päivää putkeen käyttäjä on suorittanut tapoja. 
-- Käyttäjä pystyy valitsemaan ilmoitukselle yhden tai useamman luokittelun: toistuvuuden määrä per viikko ja osaston (urheilu, hyvinvointi, terveys jne.)
-- Jos käyttäjä unohtaa merkata, että on suorittanut tavat, hän voi mennä kalenteriin ja merkata jälkeenpäin, milloin tapa oli suoritettu.
+## Sovelluksen toiminnot
 
+- Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
+- Käyttäjä pystyy lisäämään uusia tapoja sekä muokkaamaan ja poistamaan lisäämiään tapoja.
+- Käyttäjä näkee kaikki sovellukseen lisätyt tavat etusivulla.
+- Käyttäjä pystyy hakemaan tapoja otsikon tai luokittelun perusteella.
+- Käyttäjäsivu näyttää tilastoja (suorituskertojen määrä, paras putki) ja käyttäjän lisäämät tavat.
+- Käyttäjä pystyy valitsemaan tavalle luokittelun (urheilu, hyvinvointi, terveys, oppiminen, työ, harrastus) ja vaikeustason (helppo, neutraali, vaativa).
+- Käyttäjä pystyy merkitsemään suorituksia kalenterista klikkaamalla päivää.
+- Streak (putki) laskee, montako päivää putkeen käyttäjä on suorittanut tiettyä tapaa.
+- Streak katkeaa, jos käyttäjä jättää yhdenkin päivän merkkaamatta.
+- Käyttäjä voi merkitä suorituksen jälkeenpäin kalenterista, jos on unohtanut merkitä sen aiemmin.
+- Käyttäjä voi osallistua muiden käyttäjien luomiin tapoihin painamalla "Osallistu"-nappia.
+- Vain tavan omistaja ja osallistujat voivat lisätä kommentteja ja motivaatiomuistiinpanoja.
+- Tavan luoja ei näy osallistujien määrässä.
+- Käyttäjä voi jättää motivaatiorepliikkejä ja kommentteja muiden tapoihin.
+- Kommentit ja muistiinpanot ovat enintään 30 merkkiä pitkiä, ja sovellus estää fyysisesti kirjoittamasta enempää.
+- Sovellus estää tyhjien kommenttien ja muistiinpanojen lähettämisen.
+- Käyttäjä voi poistaa omat kommenttinsa ja muistiinpanonsa.
+- Käyttäjä voi poistua osallistumasta tapaan "Poistu"-napilla.
 
 
 
@@ -22,21 +32,23 @@ Ohjeet toimivat macOS- ja Linux-ympäristöissä. Tarkista ensin, että Python j
 
 <h3>Mene terminaaliin ja laita:</h3>
 
+```bash
 python3 --version
 
 sqlite3 --version
-
+```
 
 <h3>Kloonaa repositorio ja siirry sen hakemistoon:</h3>
 
-
+```bash
 git clone https://github.com/sofiasmorodina5/Habit-Tracker.git
 
 cd Habit-Tracker
-
+```
 
 <h3>Luo virtuaaliympäristö ja asenna Flask:</h3>
 
+```bash
 python3 -m venv venv
 
 source venv/bin/activate
@@ -44,14 +56,20 @@ source venv/bin/activate
 python3 -m pip install flask
 
 sqlite3 database.db < schema.sql
-
+```
 
 <h3>Käynnistä sovellus:</h3>
 
+```bash
 flask run
+```
 
-Sovellusta voi käyttää osoitteessa http://127.0.0.1:5000
 
+<h3>Sovellusta voi käyttää osoitteessa:</h3>
+
+```bash
+http://127.0.0.1:5000
+```
 
 
 
@@ -79,7 +97,7 @@ Voit luoda vain yhden käyttäjätunnuksen, sillä käyttö onnistuu myös yhdel
 
 9.Luo toinen käyttäjä.
 
-10.Kirjoita kommentti toisen käyttäjän tapaan (tai omaasi) ja tarkista, että se näkyy.
+10.Kirjoita kommentti toisen käyttäjän tapaan  ja tarkista, että se näkyy.
 
 11.Lisää motivaatiomuistiinpano ja varmista, että se tallentuu ja voit poistaa sen.
 
@@ -87,8 +105,4 @@ Voit luoda vain yhden käyttäjätunnuksen, sillä käyttö onnistuu myös yhdel
 
 13.Kokeile hakutoimintoa kirjoittamalla hakukenttään osa tavan nimestä.
 
-14.Kirjaudu ulos ja yritä mennä osoitteeseen /add. Sovelluksen pitäisi ohjata kirjautumissivulle.
-
-15.Kokeile CSRF-suojausta: poista lomakkeesta piilotettu csrf_token-kenttä ja lähetä lomake. Pitäisi tulla 403-virhe.
-
-16.Lopuksi voit kirjautua ulos.
+14.Lopuksi voit kirjautua ulos.
