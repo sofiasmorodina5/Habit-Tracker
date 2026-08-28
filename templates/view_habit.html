@@ -53,6 +53,7 @@
         <form method="POST" action="{% if is_logged %}{{ url_for('unlog_habit', habit_id=habit.id) }}{% else %}{{ url_for('log_habit', habit_id=habit.id) }}{% endif %}" style="margin:0; display:inline-block;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="log_date" value="{{ day_str }}">
+            <input type="hidden" name="week_offset" value="{{ week_offset }}">
             <button type="submit" style="border:2px solid {% if is_logged %}#2e7d32{% else %}#1a73e8{% endif %}; padding:15px; border-radius:12px; min-width:80px; background-color:{% if is_logged %}#4caf50{% else %}#1a73e8{% endif %}; cursor:pointer; font-size:inherit; text-align:center; display:block; color:white;">
                 <div style="font-size:16px; font-weight:bold;">{{ day.strftime('%a') }}</div>
                 <div style="font-size:28px;">{{ day.strftime('%d') }}</div>
@@ -71,6 +72,7 @@
     <summary style="cursor:pointer; color:blue; margin:10px 0;">📅 Merkitse suoritus muulle päivälle</summary>
     <form method="POST" action="{{ url_for('log_habit', habit_id=habit.id) }}" style="margin:10px 0; padding:10px; background:#f5f5f5; border-radius:8px;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="week_offset" value="{{ week_offset }}">
         <label>Valitse päivämäärä: <input type="date" name="log_date" value="{{ today_iso }}"></label>
         <button type="submit">Merkitse suoritetuksi</button>
     </form>

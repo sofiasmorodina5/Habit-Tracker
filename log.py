@@ -57,7 +57,8 @@ def get_week_log_count(habit_id, user_id):
     )
     return row["count"] if row else 0
 
-def get_week_dates():
+def get_week_dates(week_offset=0):
     today = date.today()
-    monday = today - timedelta(days=today.weekday())
+    target_date = today + timedelta(weeks=week_offset)
+    monday = target_date - timedelta(days=target_date.weekday())
     return [monday + timedelta(days=i) for i in range(7)]
