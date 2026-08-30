@@ -1,8 +1,6 @@
 {% extends "layout.html" %}
-
 {% block content %}
 <h2>Käyttäjän {{ profile_user.username }} profiili</h2>
-
 <div style="display:flex; gap:30px; flex-wrap:wrap; margin:10px 0; padding:15px; background-color:#f0f0f0; border-radius:10px;">
     <div>
         <strong>Käyttäjä aloitti:</strong> {{ profile_user.created_at[:10] }}
@@ -14,12 +12,11 @@
         <strong>🔥 Paras putki:</strong> <span style="font-size:28px; color:orange;">{{ best_streak }}</span> päivää
     </div>
 </div>
-
 <h3>Omat luodut tavat</h3>
 {% for habit in own_habits %}
     <div class="habit-box">
         <a href="{{ url_for('view_habit', habit_id=habit.id) }}"><strong>{{ habit.title }}</strong></a>
-        <p>{{ habit.description }}</p>
+        <p class="habit-description">{{ habit.description }}</p>
         <small>Suorituskertoja: {{ habit.log_count }} | Osallistujia: {{ habit.participant_count }}</small>
         <br>
         <small>Luotu: {{ habit.created_at[:10] }}</small>
@@ -27,12 +24,11 @@
 {% else %}
     <p>Tämä käyttäjä ei ole lisännyt vielä tapoja.</p>
 {% endfor %}
-
 <h3>Tavat, joihin {{ profile_user.username }} osallistuu</h3>
 {% for habit in participating %}
     <div class="habit-box">
         <a href="{{ url_for('view_habit', habit_id=habit.id) }}"><strong>{{ habit.title }}</strong></a>
-        <p>{{ habit.description }}</p>
+        <p class="habit-description">{{ habit.description }}</p>
         <small>Lisännyt: <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a></small>
         <br>
         <small>Luotu: {{ habit.created_at[:10] }}</small>

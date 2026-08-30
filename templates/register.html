@@ -1,8 +1,6 @@
 {% extends "layout.html" %}
-
 {% block content %}
 <h2>Rekisteröidy</h2>
-
 <form method="POST" action="{{ url_for('register') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <p>
@@ -11,11 +9,9 @@
     </p>
     <p>
         <label>Salasana (8-30 merkkiä):</label>
-        <input type="password" name="password" value="{{ password or '' }}" required>
+        <input type="password" name="password" required>
     </p>
     <button type="submit">Luo tunnus</button>
 </form>
-
 <p><a href="{{ url_for('login') }}">Onko sinulla jo tunnus? Kirjaudu</a></p>
 {% endblock %}
-

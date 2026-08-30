@@ -1,25 +1,20 @@
 {% extends "layout.html" %}
-
 {% block content %}
 <h2>Kaikki tavat</h2>
-
 <form action="{{ url_for('search') }}" method="GET">
     <input type="text" name="query" placeholder="Hae tapoja..." value="{{ search_query or '' }}">
     <button type="submit">Hae</button>
 </form>
-
 {% if search_query %}
     <p>Hakutulokset hakusanalla "{{ search_query }}"</p>
 {% endif %}
-
 {% for habit in habits %}
     <div class="habit-box">
         <h3><a href="{{ url_for('view_habit', habit_id=habit.id) }}">{{ habit.title }}</a></h3>
-        <p>{{ habit.description }}</p>
+        <p class="habit-description">{{ habit.description }}</p>
         <small>Lisännyt: <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a> ({{ habit.created_at[:10] }})</small>
         <br>
         <small>Osallistujia: {{ habit.participant_count }}</small>
-
         {% if habit.user_id == session.user_id or habit.is_participant %}
             <br><br>
             {% if habit.logged_today %}
@@ -36,7 +31,6 @@
                 </form>
             {% endif %}
         {% endif %}
-
         {% if habit.user_id != session.user_id %}
             {% if habit.is_participant %}
                 <form method="POST" action="{{ url_for('leave_habit', habit_id=habit.id) }}" style="display:inline;">
@@ -50,7 +44,6 @@
                 </form>
             {% endif %}
         {% endif %}
-
         {% if habit.user_id == session.user_id %}
             <br><br>
             <a href="{{ url_for('edit_habit', habit_id=habit.id) }}">Muokkaa</a>

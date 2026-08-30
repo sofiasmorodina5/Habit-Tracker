@@ -10,7 +10,8 @@ def get_participants(habit_id):
 
 def get_participant(habit_id, user_id):
     return query_one(
-        "SELECT * FROM habit_participants WHERE habit_id = ? AND user_id = ?",
+        "SELECT id, habit_id, user_id, joined_at FROM habit_participants "
+        "WHERE habit_id = ? AND user_id = ?",
         (habit_id, user_id)
     )
 

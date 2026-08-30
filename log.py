@@ -10,7 +10,8 @@ def get_logs_for_habit(habit_id, user_id):
 
 def get_log_for_date(habit_id, user_id, log_date):
     return query_one(
-        "SELECT * FROM habit_logs WHERE habit_id = ? AND user_id = ? AND log_date = ?",
+        "SELECT id, habit_id, user_id, log_date FROM habit_logs "
+        "WHERE habit_id = ? AND user_id = ? AND log_date = ?",
         (habit_id, user_id, log_date)
     )
 
@@ -31,7 +32,8 @@ def toggle_log(habit_id, user_id, log_date):
 
 def get_streak(habit_id, user_id):
     logs = query(
-        "SELECT log_date FROM habit_logs WHERE habit_id = ? AND user_id = ? ORDER BY log_date DESC",
+        "SELECT log_date FROM habit_logs "
+        "WHERE habit_id = ? AND user_id = ? ORDER BY log_date DESC",
         (habit_id, user_id)
     )
     if not logs:

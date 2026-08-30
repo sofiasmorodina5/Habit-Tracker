@@ -1,21 +1,17 @@
 {% extends "layout.html" %}
-
 {% block content %}
 <h2>{{ habit.title }}</h2>
-<p>{{ habit.description }}</p>
+<p class="habit-description">{{ habit.description }}</p>
 <p><strong>Vaikeustaso:</strong> {{ habit.difficulty }}</p>
-
 <div style="display:flex; gap:20px; flex-wrap:wrap; margin:10px 0;">
     <p><strong>Lisännyt:</strong> <a href="{{ url_for('user_profile', username=habit.owner_username) }}">{{ habit.owner_username }}</a></p>
     <p><strong>Luotu:</strong> {{ habit.created_at[:10] }}</p>
     <p><strong>🔥 Streak:</strong> <span style="font-size:24px; color:orange;">{{ streak }}</span> päivää putkeen!</p>
     <p><strong>Tällä viikolla:</strong> {{ week_count }} suoritusta</p>
 </div>
-
 {% if categories %}
     <p><strong>Luokittelut:</strong> {{ categories | join(', ') }}</p>
 {% endif %}
-
 {% if habit.user_id == session.user_id %}
     <a href="{{ url_for('edit_habit', habit_id=habit.id) }}">Muokkaa</a>
     <form method="POST" action="{{ url_for('delete_habit', habit_id=habit.id) }}" style="display:inline;">
@@ -33,11 +29,8 @@
         <button type="submit" style="background:purple;color:white;">Osallistu</button>
     </form>
 {% endif %}
-
 <hr>
-
 <h3>📅 Klikkaa päivää merkitäksesi suoritetuksi</h3>
-
 <div style="display:flex; align-items:center; gap:15px; margin:10px 0;">
     <a href="{{ url_for('view_habit', habit_id=habit.id, week_offset=week_offset-1) }}" style="font-size:24px; text-decoration:none; background:#ddd; padding:5px 15px; border-radius:5px;">◀</a>
     <span style="font-weight:bold;">
@@ -45,7 +38,6 @@
     </span>
     <a href="{{ url_for('view_habit', habit_id=habit.id, week_offset=week_offset+1) }}" style="font-size:24px; text-decoration:none; background:#ddd; padding:5px 15px; border-radius:5px;">▶</a>
 </div>
-
 <div style="display:flex; flex-wrap:wrap; gap:10px; margin:20px 0;">
     {% for day in week_dates %}
         {% set day_str = day.isoformat() %}
@@ -65,9 +57,7 @@
         </form>
     {% endfor %}
 </div>
-
 <p><strong>Tällä viikolla suoritettu:</strong> {{ week_count }} kertaa</p>
-
 <details>
     <summary style="cursor:pointer; color:blue; margin:10px 0;">📅 Merkitse suoritus muulle päivälle</summary>
     <form method="POST" action="{{ url_for('log_habit', habit_id=habit.id) }}" style="margin:10px 0; padding:10px; background:#f5f5f5; border-radius:8px;">
@@ -77,11 +67,8 @@
         <button type="submit">Merkitse suoritetuksi</button>
     </form>
 </details>
-
 <hr>
-
 <h3>💬 Kommentit</h3>
-
 {% if habit.user_id == session.user_id or is_participant %}
     <form method="POST" action="{{ url_for('add_comment', habit_id=habit.id) }}" style="margin:10px 0;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -91,7 +78,6 @@
 {% else %}
     <p><em>Osallistu tapaan kommentoidaksesi.</em></p>
 {% endif %}
-
 <ul>
     {% for comment in comments %}
         <li>
@@ -109,11 +95,8 @@
         <li>Ei kommentteja.</li>
     {% endfor %}
 </ul>
-
 <hr>
-
 <h3>📝 Motivaatiomuistiinpanot</h3>
-
 {% if habit.user_id == session.user_id or is_participant %}
     <form method="POST" action="{{ url_for('add_note', habit_id=habit.id) }}" style="margin:10px 0;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -123,7 +106,6 @@
 {% else %}
     <p><em>Osallistu tapaan lisätäksesi muistiinpanoja.</em></p>
 {% endif %}
-
 <ul>
     {% for note in notes %}
         <li>
@@ -141,9 +123,7 @@
         <li>Ei muistiinpanoja.</li>
     {% endfor %}
 </ul>
-
 <hr>
-
 <h3>Osallistujat ({{ participants|length }})</h3>
 <ul>
     {% for p in participants %}

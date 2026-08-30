@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, abort, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 import secrets
-import os
 
-from db import get_db, query, query_one, execute
+from db import query, query_one, execute
 from config import SECRET_KEY
 from utils import generate_csrf_token, check_csrf
 
@@ -43,49 +42,6 @@ def validate_habit(title, description, difficulty):
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
-def get_user_by_username(username):
-    return query_one("SELECT * FROM users WHERE username = ?", (username,))
-
-def get_all_categories():
-    return query("SELECT * FROM categories ORDER BY name")
-
-def get_habit_categories(habit_id):
-    rows = query("SELECT category_name FROM habit_categories WHERE habit_id = ?", (habit_id,))
-    return [row["category_name"] for row in rows]
-
-def get_streak(habit_id, user_id):
-    logs = query(
-        "SELECT log_date FROM habit_logs WHERE habit_id = ? AND user_id = ? ORDER BY log_date DESC",
-        (habit_id, user_id)
-    )
-    if not logs:
-        return 0
-    dates = [datetime.strptime(log["log_date"], "%Y-%m-%d").date() for log in logs]
-    streak = 0
-    current_date = date.today()
-    if current_date not in dates:
-        current_date = current_date - timedelta(days=1)
-    while current_date in dates:
-        streak += 1
-        current_date = current_date - timedelta(days=1)
-    return streak
-
-def get_week_dates():
-    today = date.today()
-    monday = today - timedelta(days=today.weekday())
-    return [monday + timedelta(days=i) for i in range(7)]
-
-def get_week_log_count(habit_id, user_id):
-    today = date.today()
-    monday = today - timedelta(days=today.weekday())
-    sunday = monday + timedelta(days=6)
-    row = query_one(
-        "SELECT COUNT(*) as count FROM habit_logs "
-        "WHERE habit_id = ? AND user_id = ? AND log_date BETWEEN ? AND ?",
-        (habit_id, user_id, monday.isoformat(), sunday.isoformat())
-    )
-    return row["count"] if row else 0
-
 app.jinja_env.globals["csrf_token"] = generate_csrf_token
 app.jinja_env.globals["date"] = date
 
@@ -122,11 +78,9 @@ def register():
         if errors:
             if not username_valid:
                 username = ""
-            if not password_valid:
-                password = ""
             for error in errors:
                 flash(error)
-            return render_template("register.html", username=username, password=password)
+            return render_template("register.html", username=username)
 
         password_hash = generate_password_hash(password)
         create_user(username, password_hash)
@@ -165,8 +119,10 @@ def index():
     if "user_id" not in session:
         return redirect(url_for("login"))
     habits = query("""
-        SELECT habits.*, users.username as owner_username,
-               (SELECT COUNT(*) FROM habit_participants WHERE habit_id = habits.id) as participant_count
+        SELECT habits.id, habits.user_id, habits.title, habits.description,
+               habits.difficulty, habits.created_at, users.username as owner_username,
+               (SELECT COUNT(*) FROM habit_participants
+                WHERE habit_id = habits.id) as participant_count
         FROM habits
         JOIN users ON habits.user_id = users.id
         ORDER BY habits.created_at DESC
@@ -174,13 +130,15 @@ def index():
     habits = [dict(row) for row in habits]
     for h in habits:
         participant = query_one(
-            "SELECT * FROM habit_participants WHERE habit_id = ? AND user_id = ?",
+            "SELECT id, habit_id, user_id, joined_at FROM habit_participants "
+            "WHERE habit_id = ? AND user_id = ?",
             (h["id"], session["user_id"])
         )
         h["is_participant"] = bool(participant)
         today = date.today().isoformat()
         log = query_one(
-            "SELECT * FROM habit_logs WHERE habit_id = ? AND user_id = ? AND log_date = ?",
+            "SELECT id, habit_id, user_id, log_date FROM habit_logs "
+            "WHERE habit_id = ? AND user_id = ? AND log_date = ?",
             (h["id"], session["user_id"], today)
         )
         h["logged_today"] = bool(log)
@@ -195,26 +153,30 @@ def search():
         return redirect(url_for("index"))
     search_term = f"%{query_term}%"
     habits = query("""
-        SELECT DISTINCT habits.*, users.username as owner_username,
-               (SELECT COUNT(*) FROM habit_participants WHERE habit_id = habits.id) as participant_count
+        SELECT DISTINCT habits.id, habits.user_id, habits.title, habits.description,
+               habits.difficulty, habits.created_at, users.username as owner_username,
+               (SELECT COUNT(*) FROM habit_participants
+                WHERE habit_id = habits.id) as participant_count
         FROM habits
         JOIN users ON habits.user_id = users.id
         LEFT JOIN habit_categories ON habits.id = habit_categories.habit_id
-        WHERE habits.title LIKE ? 
-           OR habits.description LIKE ? 
+        WHERE habits.title LIKE ?
+           OR habits.description LIKE ?
            OR habit_categories.category_name LIKE ?
         ORDER BY habits.created_at DESC
     """, (search_term, search_term, search_term))
     habits = [dict(row) for row in habits]
     for h in habits:
         participant = query_one(
-            "SELECT * FROM habit_participants WHERE habit_id = ? AND user_id = ?",
+            "SELECT id, habit_id, user_id, joined_at FROM habit_participants "
+            "WHERE habit_id = ? AND user_id = ?",
             (h["id"], session["user_id"])
         )
         h["is_participant"] = bool(participant)
         today = date.today().isoformat()
         log = query_one(
-            "SELECT * FROM habit_logs WHERE habit_id = ? AND user_id = ? AND log_date = ?",
+            "SELECT id, habit_id, user_id, log_date FROM habit_logs "
+            "WHERE habit_id = ? AND user_id = ? AND log_date = ?",
             (h["id"], session["user_id"], today)
         )
         h["logged_today"] = bool(log)
@@ -231,13 +193,18 @@ def add_habit():
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()
     difficulty = request.form.get("difficulty", "neutraali")
-    
+
     errors = validate_habit(title, description, difficulty)
     if errors:
         for error in errors:
             flash(error)
-        return render_template("add_habit.html", categories=categories, title=title, description=description)
-    
+        return render_template(
+            "add_habit.html",
+            categories=categories,
+            title=title,
+            description=description
+        )
+
     habit_id = execute(
         "INSERT INTO habits (user_id, title, description, difficulty) VALUES (?, ?, ?, ?)",
         (session["user_id"], title, description, difficulty)
@@ -256,7 +223,8 @@ def edit_habit(habit_id):
     if "user_id" not in session:
         return redirect(url_for("login"))
     habit = query_one(
-        "SELECT * FROM habits WHERE id = ? AND user_id = ?",
+        "SELECT id, user_id, title, description, difficulty, created_at "
+        "FROM habits WHERE id = ? AND user_id = ?",
         (habit_id, session["user_id"])
     )
     if not habit:
@@ -265,18 +233,28 @@ def edit_habit(habit_id):
     categories = get_all_categories()
     selected = get_habit_categories(habit_id)
     if request.method == "GET":
-        return render_template("edit_habit.html", habit=habit, categories=categories, selected_categories=selected)
+        return render_template(
+            "edit_habit.html",
+            habit=habit,
+            categories=categories,
+            selected_categories=selected
+        )
     check_csrf()
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()
     difficulty = request.form.get("difficulty", "neutraali")
-    
+
     errors = validate_habit(title, description, difficulty)
     if errors:
         for error in errors:
             flash(error)
-        return render_template("edit_habit.html", habit=habit, categories=categories, selected_categories=selected)
-    
+        return render_template(
+            "edit_habit.html",
+            habit=habit,
+            categories=categories,
+            selected_categories=selected
+        )
+
     execute(
         "UPDATE habits SET title = ?, description = ?, difficulty = ? WHERE id = ?",
         (title, description, difficulty, habit_id)
@@ -343,7 +321,8 @@ def join_habit(habit_id):
         return redirect(url_for("login"))
     check_csrf()
     existing = query_one(
-        "SELECT * FROM habit_participants WHERE habit_id = ? AND user_id = ?",
+        "SELECT id, habit_id, user_id, joined_at FROM habit_participants "
+        "WHERE habit_id = ? AND user_id = ?",
         (habit_id, session["user_id"])
     )
     if not existing:
@@ -442,18 +421,15 @@ def view_habit(habit_id):
     is_participant = bool(get_participant(habit_id, session["user_id"]))
     logged_dates = get_logs_for_habit(habit_id, session["user_id"])
     streak = get_streak(habit_id, session["user_id"])
-    
-    # LASKETAAN VIIKON PÄIVÄT SUORAAN TÄSSÄ
-    today = date.today()
-    target_date = today + timedelta(weeks=week_offset)
-    monday = target_date - timedelta(days=target_date.weekday())
-    week_dates = [monday + timedelta(days=i) for i in range(7)]
-    
+
+    week_dates = get_week_dates(week_offset)
+    monday = week_dates[0]
+    sunday = week_dates[6]
+
     week_count = get_week_log_count(habit_id, session["user_id"])
     today_iso = date.today().isoformat()
     categories = get_habit_categories(habit_id)
-    sunday = monday + timedelta(days=6)
-    
+
     return render_template("view_habit.html",
                          habit=habit,
                          notes=notes,
@@ -475,21 +451,27 @@ def view_habit(habit_id):
 def user_profile(username):
     if "user_id" not in session:
         return redirect(url_for("login"))
-    user = query_one("SELECT * FROM users WHERE username = ?", (username,))
+    user = query_one(
+        "SELECT id, username, password_hash, created_at FROM users WHERE username = ?",
+        (username,)
+    )
     if not user:
         return "Käyttäjää ei löydy", 404
 
     own_habits = query("""
-        SELECT habits.*,
+        SELECT habits.id, habits.user_id, habits.title, habits.description,
+               habits.difficulty, habits.created_at,
                (SELECT COUNT(*) FROM habit_logs WHERE habit_id = habits.id) as log_count,
-               (SELECT COUNT(*) FROM habit_participants WHERE habit_id = habits.id) as participant_count
+               (SELECT COUNT(*) FROM habit_participants
+                WHERE habit_id = habits.id) as participant_count
         FROM habits
         WHERE habits.user_id = ?
         ORDER BY habits.created_at DESC
     """, (user["id"],))
 
     participating = query("""
-        SELECT habits.*, users.username as owner_username
+        SELECT habits.id, habits.user_id, habits.title, habits.description,
+               habits.difficulty, habits.created_at, users.username as owner_username
         FROM habit_participants
         JOIN habits ON habit_participants.habit_id = habits.id
         JOIN users ON habits.user_id = users.id
@@ -520,11 +502,10 @@ def user_profile(username):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template("404.html"), 404
+    return render_template("error.html", title="Sivua ei löytynyt",
+                            message="Etsimääsi sivua ei ole olemassa, palaa etusivulle."), 404
 
 @app.errorhandler(403)
 def forbidden(e):
-    return render_template("403.html"), 403
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    return render_template("error.html", title="Toiminto estetty",
+                            message="Sinulla ei ole oikeutta tehdä tätä toimintoa, palaa etusivulle."), 403
