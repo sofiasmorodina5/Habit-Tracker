@@ -443,7 +443,7 @@ def view_habit(habit_id):
     logged_dates = get_logs_for_habit(habit_id, session["user_id"])
     streak = get_streak(habit_id, session["user_id"])
     
-    # LASKETAAN VIIKON PÄIVÄT SUORAAN TÄSSÄ
+    
     today = date.today()
     target_date = today + timedelta(weeks=week_offset)
     monday = target_date - timedelta(days=target_date.weekday())
