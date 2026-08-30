@@ -1,5 +1,6 @@
-from db import query, query_one, execute
 from datetime import date, timedelta, datetime
+
+from db import query, query_one, execute
 
 def get_logs_for_habit(habit_id, user_id):
     rows = query(
