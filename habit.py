@@ -1,6 +1,13 @@
 from db import query, query_one, execute
 
-def get_all_habits():
+PAGE_SIZE = 10
+
+def get_habit_count():
+    row = query_one("SELECT COUNT(*) as count FROM habits")
+    return row["count"] if row else 0
+
+def get_all_habits(page=1, page_size=PAGE_SIZE):
+    offset = page_size * (page - 1)
     return query("""
         SELECT habits.id, habits.user_id, habits.title, habits.description,
                habits.difficulty, habits.created_at, users.username as owner_username,
@@ -9,10 +16,24 @@ def get_all_habits():
         FROM habits
         JOIN users ON habits.user_id = users.id
         ORDER BY habits.created_at DESC
-    """)
+        LIMIT ? OFFSET ?
+    """, (page_size, offset))
 
-def search_habits(query_term):
+def get_search_count(query_term):
     search = f"%{query_term}%"
+    row = query_one("""
+        SELECT COUNT(DISTINCT habits.id) as count
+        FROM habits
+        LEFT JOIN habit_categories ON habits.id = habit_categories.habit_id
+        WHERE habits.title LIKE ?
+           OR habits.description LIKE ?
+           OR habit_categories.category_name LIKE ?
+    """, (search, search, search))
+    return row["count"] if row else 0
+
+def search_habits(query_term, page=1, page_size=PAGE_SIZE):
+    search = f"%{query_term}%"
+    offset = page_size * (page - 1)
     return query("""
         SELECT DISTINCT habits.id, habits.user_id, habits.title, habits.description,
                habits.difficulty, habits.created_at, users.username as owner_username,
@@ -25,7 +46,8 @@ def search_habits(query_term):
            OR habits.description LIKE ?
            OR habit_categories.category_name LIKE ?
         ORDER BY habits.created_at DESC
-    """, (search, search, search))
+        LIMIT ? OFFSET ?
+    """, (search, search, search, page_size, offset))
 
 def get_habit_with_owner(habit_id):
     return query_one("""

@@ -106,3 +106,51 @@ Voit luoda vain yhden käyttäjätunnuksen, sillä käyttö onnistuu myös yhdel
 13.Kokeile hakutoimintoa kirjoittamalla hakukenttään osa tavan nimestä.
 
 14.Lopuksi voit kirjautua ulos.
+
+
+
+<h2>Suuren tietomäärän testaus</h2>
+
+Tiedosto `seed.py` luo tietokantaan seuraavan testiaineiston:
+
+- 1 000 käyttäjää
+- 100 000 tapaa
+- 200 000 osallistumista
+- 1 000 000 suoritusmerkintää
+
+Testiaineisto luodaan vasta sen jälkeen, kun tietokanta on alustettu asennusohjeen
+mukaisesti. Komento poistaa tietokannasta aiemmat käyttäjät, tavat ja suoritukset,
+joten sitä ei pidä ajaa tietokannalle, jonka sisällön haluaa säilyttää.
+
+```bash
+python3 seed.py
+```
+
+Testiaineistoon voi kirjautua tunnuksella `test_user_1` ja salasanalla `salasana123`.
+
+Etusivu näyttää kymmenen tapaa kerrallaan. Testiaineistolla etusivulle muodostuu
+10 000 sivua. Testissä avattiin etusivun ensimmäinen ja viimeinen sivu, yksittäisen
+tavan sivu, käyttäjäsivu sekä tapahaku. Kaikki sivut avautuivat oikein, eikä
+selaimeen yritetty ladata koko tapamäärää kerralla.
+
+Alla olevat ajat ovat viiden sivupyynnön mediaaneja yhden lämmittelypyynnön
+jälkeen. Indeksivertailua varten indeksit poistettiin vain paikallisesta
+testitietokannasta mittauksen ajaksi ja luotiin sen jälkeen takaisin.
+Mittauskoodia ei ole jätetty sovellukseen.
+
+| Testattu sivu | Ilman indeksejä | Indeksien kanssa |
+| --- | ---: | ---: |
+| Etusivun ensimmäinen sivu | 0,0216 s | 0,0191 s |
+| Etusivun viimeinen sivu | 0,1332 s | 0,1248 s |
+| Yksittäinen tapa | 0,0029 s | 0,0028 s |
+| Käyttäjäsivu | 0,1025 s | 0,0569 s |
+| Tapahaku | 0,1101 s | 0,1085 s |
+
+Indeksi nopeuttaa selvimmin käyttäjäsivua, koska se hakee käyttäjän omat tavat,
+suoritukset ja osallistumiset `user_id`-sarakkeen perusteella. SQLite käytti
+mittauksessa indeksejä sarakkeiden `habits.user_id`, `habit_logs.user_id` ja
+`habit_participants.user_id` perusteella tehtyihin hakuihin. Tapahaku ei hyödy
+tavallisesta indeksistä, koska haku etsii merkkijonoa myös kuvauksen keskeltä
+(`LIKE '%...%'`), eikä yksittäisen tavan sivu käytä näitä kolmea indeksiä lainkaan,
+koska se hakee suoritukset `habit_id`-sarakkeen perusteella, jolla on jo oma
+indeksinsä `UNIQUE`-rajoitteen kautta.

@@ -84,3 +84,7 @@ CREATE TABLE habit_comments (
     FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE INDEX idx_habits_user_id ON habits (user_id);
+CREATE INDEX idx_habit_logs_user_id ON habit_logs (user_id);
+CREATE INDEX idx_habit_participants_user_id ON habit_participants (user_id);

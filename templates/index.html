@@ -56,4 +56,23 @@
 {% else %}
     <p>Ei tapoja.</p>
 {% endfor %}
+{% if total_pages and total_pages > 1 %}
+<div style="display:flex; align-items:center; gap:15px; margin:20px 0;">
+    {% if page > 1 %}
+        {% if search_query %}
+            <a href="{{ url_for('search', query=search_query, page=page-1) }}">◀ Edellinen</a>
+        {% else %}
+            <a href="{{ url_for('index', page=page-1) }}">◀ Edellinen</a>
+        {% endif %}
+    {% endif %}
+    <span>Sivu {{ page }} / {{ total_pages }}</span>
+    {% if page < total_pages %}
+        {% if search_query %}
+            <a href="{{ url_for('search', query=search_query, page=page+1) }}">Seuraava ▶</a>
+        {% else %}
+            <a href="{{ url_for('index', page=page+1) }}">Seuraava ▶</a>
+        {% endif %}
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}

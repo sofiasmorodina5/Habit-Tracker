@@ -12,10 +12,11 @@ from user import (
     get_total_logs, get_participating_habits
 )
 from habit import (
-    get_all_habits, search_habits, get_habit_with_owner,
+    get_all_habits, get_habit_count, search_habits, get_search_count,
+    get_habit_with_owner,
     add_habit, update_habit, delete_habit,
     get_habits_by_user, add_habit_category, delete_habit_categories,
-    get_habit_categories, get_all_categories
+    get_habit_categories, get_all_categories, PAGE_SIZE
 )
 from log import (
     get_logs_for_habit, get_log_for_date, toggle_log,
@@ -118,15 +119,14 @@ def logout():
 def index():
     if "user_id" not in session:
         return redirect(url_for("login"))
-    habits = query("""
-        SELECT habits.id, habits.user_id, habits.title, habits.description,
-               habits.difficulty, habits.created_at, users.username as owner_username,
-               (SELECT COUNT(*) FROM habit_participants
-                WHERE habit_id = habits.id) as participant_count
-        FROM habits
-        JOIN users ON habits.user_id = users.id
-        ORDER BY habits.created_at DESC
-    """)
+    page = request.args.get("page", 1, type=int)
+    if page < 1:
+        page = 1
+    total_habits = get_habit_count()
+    total_pages = max(1, -(-total_habits // PAGE_SIZE))
+    if page > total_pages:
+        page = total_pages
+    habits = get_all_habits(page)
     habits = [dict(row) for row in habits]
     for h in habits:
         participant = query_one(
@@ -142,7 +142,7 @@ def index():
             (h["id"], session["user_id"], today)
         )
         h["logged_today"] = bool(log)
-    return render_template("index.html", habits=habits)
+    return render_template("index.html", habits=habits, page=page, total_pages=total_pages)
 
 @app.route("/search")
 def search():
@@ -151,20 +151,14 @@ def search():
     query_term = request.args.get("query", "").strip()
     if not query_term:
         return redirect(url_for("index"))
-    search_term = f"%{query_term}%"
-    habits = query("""
-        SELECT DISTINCT habits.id, habits.user_id, habits.title, habits.description,
-               habits.difficulty, habits.created_at, users.username as owner_username,
-               (SELECT COUNT(*) FROM habit_participants
-                WHERE habit_id = habits.id) as participant_count
-        FROM habits
-        JOIN users ON habits.user_id = users.id
-        LEFT JOIN habit_categories ON habits.id = habit_categories.habit_id
-        WHERE habits.title LIKE ?
-           OR habits.description LIKE ?
-           OR habit_categories.category_name LIKE ?
-        ORDER BY habits.created_at DESC
-    """, (search_term, search_term, search_term))
+    page = request.args.get("page", 1, type=int)
+    if page < 1:
+        page = 1
+    total_habits = get_search_count(query_term)
+    total_pages = max(1, -(-total_habits // PAGE_SIZE))
+    if page > total_pages:
+        page = total_pages
+    habits = search_habits(query_term, page)
     habits = [dict(row) for row in habits]
     for h in habits:
         participant = query_one(
@@ -180,7 +174,10 @@ def search():
             (h["id"], session["user_id"], today)
         )
         h["logged_today"] = bool(log)
-    return render_template("index.html", habits=habits, search_query=query_term)
+    return render_template(
+        "index.html", habits=habits, search_query=query_term,
+        page=page, total_pages=total_pages
+    )
 
 @app.route("/add", methods=["GET", "POST"])
 def add_habit():
