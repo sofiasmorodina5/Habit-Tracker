@@ -1,4 +1,4 @@
-from db import query, query_one, execute
+from db import query, execute
 
 def get_notes_by_habit(habit_id):
     return query("""

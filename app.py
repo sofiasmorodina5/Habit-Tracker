@@ -1,32 +1,29 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import date, timedelta
+from datetime import date
 import secrets
 
-from db import query, query_one, execute
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from db import query_one, execute
 from config import SECRET_KEY
 from utils import generate_csrf_token, check_csrf
 
 from user import (
-    get_user_by_username, get_user_by_id, create_user,
+    get_user_by_username, create_user,
     get_total_logs, get_participating_habits
 )
 from habit import (
     get_all_habits, get_habit_count, search_habits, get_search_count,
-    get_habit_with_owner,
-    add_habit, update_habit, delete_habit,
-    get_habits_by_user, add_habit_category, delete_habit_categories,
+    get_habit_with_owner, get_habits_by_user,
     get_habit_categories, get_all_categories, PAGE_SIZE
 )
 from log import (
-    get_logs_for_habit, get_log_for_date, toggle_log,
+    get_logs_for_habit, toggle_log,
     get_streak, get_week_log_count, get_week_dates
 )
-from participant import (
-    get_participants, get_participant, add_participant, remove_participant
-)
-from comment import get_comments_by_habit, add_comment, delete_comment
-from note import get_notes_by_habit, add_note, delete_note
+from participant import get_participants, get_participant
+from comment import get_comments_by_habit
+from note import get_notes_by_habit
 
 def validate_habit(title, description, difficulty):
     errors = []
@@ -54,7 +51,6 @@ def register():
         password = request.form.get("password", "")
         errors = []
         username_valid = True
-        password_valid = True
 
         if not username or len(username) < 3:
             errors.append("Käyttäjätunnuksen on oltava vähintään 3 merkkiä")
@@ -71,10 +67,8 @@ def register():
 
         if not password or len(password) < 8:
             errors.append("Salasanan on oltava vähintään 8 merkkiä")
-            password_valid = False
         elif len(password) > 30:
             errors.append("Salasana voi olla enintään 30 merkkiä")
-            password_valid = False
 
         if errors:
             if not username_valid:
@@ -120,12 +114,10 @@ def index():
     if "user_id" not in session:
         return redirect(url_for("login"))
     page = request.args.get("page", 1, type=int)
-    if page < 1:
-        page = 1
+    page = max(page, 1)
     total_habits = get_habit_count()
     total_pages = max(1, -(-total_habits // PAGE_SIZE))
-    if page > total_pages:
-        page = total_pages
+    page = min(page, total_pages)
     habits = get_all_habits(page)
     habits = [dict(row) for row in habits]
     for h in habits:
@@ -152,12 +144,10 @@ def search():
     if not query_term:
         return redirect(url_for("index"))
     page = request.args.get("page", 1, type=int)
-    if page < 1:
-        page = 1
+    page = max(page, 1)
     total_habits = get_search_count(query_term)
     total_pages = max(1, -(-total_habits // PAGE_SIZE))
-    if page > total_pages:
-        page = total_pages
+    page = min(page, total_pages)
     habits = search_habits(query_term, page)
     habits = [dict(row) for row in habits]
     for h in habits:
@@ -291,7 +281,7 @@ def log_habit(habit_id):
     if not habit:
         flash("Tapa ei löydy")
         return redirect(request.referrer or url_for("index"))
-    is_owner = (habit["user_id"] == session["user_id"])
+    is_owner = habit["user_id"] == session["user_id"]
     is_participant = bool(get_participant(habit_id, session["user_id"]))
     if not (is_owner or is_participant):
         flash("Et voi merkitä tätä tapaa. Osallistu ensin painamalla 'Osallistu'-nappia.")
@@ -414,15 +404,12 @@ def view_habit(habit_id):
     notes = get_notes_by_habit(habit_id)
     comments = get_comments_by_habit(habit_id)
     participants = get_participants(habit_id)
-    is_owner = (habit["user_id"] == session["user_id"])
+    is_owner = habit["user_id"] == session["user_id"]
     is_participant = bool(get_participant(habit_id, session["user_id"]))
     logged_dates = get_logs_for_habit(habit_id, session["user_id"])
     streak = get_streak(habit_id, session["user_id"])
 
     week_dates = get_week_dates(week_offset)
-    monday = week_dates[0]
-    sunday = week_dates[6]
-
     week_count = get_week_log_count(habit_id, session["user_id"])
     today_iso = date.today().isoformat()
     categories = get_habit_categories(habit_id)
@@ -441,8 +428,8 @@ def view_habit(habit_id):
                          today_iso=today_iso,
                          categories=categories,
                          week_offset=week_offset,
-                         monday=monday,
-                         sunday=sunday)
+                         monday=week_dates[0],
+                         sunday=week_dates[6])
 
 @app.route("/user/<username>")
 def user_profile(username):
@@ -455,40 +442,17 @@ def user_profile(username):
     if not user:
         return "Käyttäjää ei löydy", 404
 
-    own_habits = query("""
-        SELECT habits.id, habits.user_id, habits.title, habits.description,
-               habits.difficulty, habits.created_at,
-               (SELECT COUNT(*) FROM habit_logs WHERE habit_id = habits.id) as log_count,
-               (SELECT COUNT(*) FROM habit_participants
-                WHERE habit_id = habits.id) as participant_count
-        FROM habits
-        WHERE habits.user_id = ?
-        ORDER BY habits.created_at DESC
-    """, (user["id"],))
-
-    participating = query("""
-        SELECT habits.id, habits.user_id, habits.title, habits.description,
-               habits.difficulty, habits.created_at, users.username as owner_username
-        FROM habit_participants
-        JOIN habits ON habit_participants.habit_id = habits.id
-        JOIN users ON habits.user_id = users.id
-        WHERE habit_participants.user_id = ?
-        ORDER BY habit_participants.joined_at DESC
-    """, (user["id"],))
+    own_habits = get_habits_by_user(user["id"])
+    participating = get_participating_habits(user["id"])
 
     all_habits = list(own_habits) + list(participating)
 
     best_streak = 0
     for habit in all_habits:
         streak = get_streak(habit["id"], user["id"])
-        if streak > best_streak:
-            best_streak = streak
+        best_streak = max(best_streak, streak)
 
-    total_logs = query_one(
-        "SELECT COUNT(*) as count FROM habit_logs WHERE user_id = ?",
-        (user["id"],)
-    )
-    total_logs = total_logs["count"] if total_logs else 0
+    total_logs = get_total_logs(user["id"])
 
     return render_template("profile.html",
                          profile_user=user,
