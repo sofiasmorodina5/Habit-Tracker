@@ -507,5 +507,7 @@ def page_not_found(e):
 
 @app.errorhandler(403)
 def forbidden(e):
-    return render_template("error.html", title="Toiminto estetty",
-                            message="Sinulla ei ole oikeutta tehdä tätä toimintoa, palaa etusivulle."), 403
+    return render_template(
+        "error.html", title="Toiminto estetty",
+        message="Sinulla ei ole oikeutta tehdä tätä toimintoa, palaa etusivulle."
+    ), 403
