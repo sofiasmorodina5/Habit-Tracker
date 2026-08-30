@@ -462,12 +462,12 @@ def user_profile(username):
                          best_streak=best_streak)
 
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found(_):
     return render_template("error.html", title="Sivua ei löytynyt",
                             message="Etsimääsi sivua ei ole olemassa, palaa etusivulle."), 404
 
 @app.errorhandler(403)
-def forbidden(e):
+def forbidden(_):
     return render_template(
         "error.html", title="Toiminto estetty",
         message="Sinulla ei ole oikeutta tehdä tätä toimintoa, palaa etusivulle."

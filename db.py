@@ -8,19 +8,22 @@ def get_db():
     db.execute("PRAGMA foreign_keys = ON")
     return db
 
-def query(sql, params=[]):
+def query(sql, params=None):
+    params = params if params is not None else []
     db = get_db()
     result = db.execute(sql, params).fetchall()
     db.close()
     return result
 
-def query_one(sql, params=[]):
+def query_one(sql, params=None):
+    params = params if params is not None else []
     db = get_db()
     result = db.execute(sql, params).fetchone()
     db.close()
     return result
 
-def execute(sql, params=[]):
+def execute(sql, params=None):
+    params = params if params is not None else []
     db = get_db()
     result = db.execute(sql, params)
     db.commit()

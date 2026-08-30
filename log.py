@@ -1,5 +1,6 @@
-from db import query, query_one, execute
 from datetime import date, timedelta, datetime
+
+from db import query, query_one, execute
 
 def get_logs_for_habit(habit_id, user_id):
     rows = query(
@@ -23,12 +24,11 @@ def toggle_log(habit_id, user_id, log_date):
             (habit_id, user_id, log_date)
         )
         return False
-    else:
-        execute(
-            "INSERT INTO habit_logs (habit_id, user_id, log_date) VALUES (?, ?, ?)",
-            (habit_id, user_id, log_date)
-        )
-        return True
+    execute(
+        "INSERT INTO habit_logs (habit_id, user_id, log_date) VALUES (?, ?, ?)",
+        (habit_id, user_id, log_date)
+    )
+    return True
 
 def get_streak(habit_id, user_id):
     logs = query(
