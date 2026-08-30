@@ -3,7 +3,7 @@
 
 <h2>Sovelluksen toiminnot:</h2>
 
-## Sovelluksen toiminnot
+
 
 - Käyttäjä pystyy luomaan tunnuksen ja kirjautumaan sisään sovellukseen.
 - Käyttäjä pystyy lisäämään uusia tapoja sekä muokkaamaan ja poistamaan lisäämiään tapoja.
@@ -154,3 +154,18 @@ tavallisesta indeksistä, koska haku etsii merkkijonoa myös kuvauksen keskeltä
 (`LIKE '%...%'`), eikä yksittäisen tavan sivu käytä näitä kolmea indeksiä lainkaan,
 koska se hakee suoritukset `habit_id`-sarakkeen perusteella, jolla on jo oma
 indeksinsä `UNIQUE`-rajoitteen kautta.
+
+
+
+
+<h2>Pylint</h2>
+
+Sovelluksen lopullinen Python-koodi tarkastettiin Pylintin versiolla 4.0.7. Tarkastuksen
+muuttamaton tuloste ja ilmoitusten perustelut ovat tiedostossa [pylint-report.md](pylint-report.md).
+
+Tarkastuksen voi toistaa virtuaaliympäristössä komennoilla:
+
+```bash
+python3 -m pip install pylint==4.0.7
+python3 -m pylint *.py
+```
